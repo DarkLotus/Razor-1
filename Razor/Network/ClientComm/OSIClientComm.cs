@@ -10,6 +10,8 @@ using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using System.Net;
 using Assistant.Core;
+using Assistant.MapUO;
+using CUO_API;
 using Microsoft.Win32;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
@@ -39,7 +41,7 @@ namespace Assistant
 		public static readonly uint MaxBit			= 16;
 	}
 
-    public unsafe sealed class ClientCommunication
+    public unsafe sealed class OSIClientCommunication : ClientCommunication
 	{
 		public enum UONetMessage
 		{
@@ -99,13 +101,18 @@ namespace Assistant
 			[FieldOffset( 4 )] public int Start;
 			[FieldOffset( 8 )] public byte Buff0;
 		}
+		public override IntPtr ClientWindow
+		{
+			get { return InternalFindUOWindow();}
+			set { }
+		}
 
 		[DllImport( "Crypt.dll" )]
 		private static unsafe extern int InstallLibrary( IntPtr thisWnd, int procid, int features );
 		[DllImport( "Crypt.dll" )]
 		private static unsafe extern void Shutdown( bool closeClient );
-		[DllImport( "Crypt.dll" )]
-		internal static unsafe extern IntPtr FindUOWindow();
+		[DllImport( "Crypt.dll", EntryPoint ="FindUOWindow")]
+		internal static unsafe extern IntPtr InternalFindUOWindow();
 		[DllImport( "Crypt.dll" )]
 		private static unsafe extern IntPtr GetSharedAddress();
 		[DllImport( "Crypt.dll" )]
@@ -118,41 +125,37 @@ namespace Assistant
 		internal static unsafe extern uint TotalIn();
 		[DllImport( "Crypt.dll" )]
 		internal static unsafe extern uint TotalOut();
-		[DllImport( "Crypt.dll" )]
-		internal static unsafe extern IntPtr CaptureScreen(bool isFullScreen, string msgStr);
+		[DllImport( "Crypt.dll", EntryPoint = "CaptureScreen")]
+		internal static unsafe extern IntPtr InternalCaptureScreen(bool isFullScreen, string msgStr);
+
+		public override IntPtr CaptureScreen(bool getBool, string timestamp)
+		{
+			return InternalCaptureScreen(getBool, timestamp);
+		}
+
+		public override bool AllowBit(uint bit)
+		{
+			return InternalAllowBit(bit);
+		}
+
 		[DllImport( "Crypt.dll" )]
 		private static unsafe extern void WaitForWindow( int pid );
 		[DllImport( "Crypt.dll" )]
 		internal static unsafe extern void SetDataPath(string path);
-		[DllImport( "Crypt.dll" )]
-		internal static unsafe extern void CalibratePosition( uint x, uint y, uint z, byte dir );
-		[DllImport( "Crypt.dll" )]
-		internal static unsafe extern void BringToFront( IntPtr hWnd );
-		[DllImport( "Crypt.dll" )]
-		internal static unsafe extern bool AllowBit( uint bit );
+		[DllImport( "Crypt.dll", EntryPoint ="CalibratePosition")]
+		internal static unsafe extern void InternalCalibratePosition( uint x, uint y, uint z, byte dir );
+		[DllImport( "Crypt.dll", EntryPoint ="BringToFront")]
+		internal static unsafe extern void InternalBringToFront( IntPtr hWnd );
+		[DllImport( "Crypt.dll", EntryPoint ="AllowBit")]
+		internal static unsafe extern bool InternalAllowBit( uint bit );
         [DllImport( "Crypt.dll" )]
 		private static unsafe extern void SetServer( uint ip, ushort port );
-		[DllImport( "Crypt.dll" )]
-		internal static unsafe extern int HandleNegotiate( ulong word );
+		[DllImport( "Crypt.dll", EntryPoint ="HandleNegotiate")]
+		internal static unsafe extern int InternalHandleNegotiate( ulong word );
 		[DllImport( "Crypt.dll" )]
 		internal static unsafe extern string GetUOVersion();
 
-		public enum Loader_Error
-		{
-			SUCCESS = 0,
-			NO_OPEN_EXE,
-			NO_MAP_EXE,
-			NO_READ_EXE_DATA,
-
-			NO_RUN_EXE,
-			NO_ALLOC_MEM,
-
-			NO_WRITE,
-			NO_VPROTECT,
-			NO_READ,
-
-			UNKNOWN_ERROR = 99
-		};
+		
 
 		[DllImport( "Loader.dll" )]
 		private static unsafe extern uint Load( string exe, string dll, string func, void *dllData, int dataLen, out uint pid );
@@ -171,7 +174,7 @@ namespace Assistant
 		[DllImport( "Advapi32.dll" )]
 		private static extern int GetUserNameA( StringBuilder buff, int *len );
 
-		public static string GetWindowsUserName()
+		public override string GetWindowsUserName()
 		{
 			int len = 1024;
 			StringBuilder sb = new StringBuilder( len );
@@ -179,6 +182,33 @@ namespace Assistant
 				return sb.ToString();
 			else
 				return "";
+		}
+
+		public override unsafe bool InstallCUOHooks(ref PluginHeader* plugin)
+		{
+			throw new NotImplementedException();
+		}
+
+		public override IntPtr FindUOWindow()
+		{
+			return InternalFindUOWindow();
+		}
+
+		public override void BringToFront(IntPtr ptr)
+		{
+			InternalBringToFront(ptr);
+		}
+
+		
+
+		public override void CalibratePosition(uint positionX, uint positionY, uint positionZ, byte mDirection)
+		{
+			InternalCalibratePosition(positionX,positionY,positionZ,mDirection);
+		}
+
+		public override int HandleNegotiate(ulong features)
+		{
+			return InternalHandleNegotiate(features);
 		}
 
 		private static Queue<Packet> m_SendQueue = new Queue<Packet>();
@@ -201,11 +231,15 @@ namespace Assistant
 		private static Timer m_TBTimer;
 		private static IPAddress m_LastConnection;
 
-		public static DateTime ConnectionStart { get{ return m_ConnStart; } }
-		public static IPAddress LastConnection{ get{ return m_LastConnection; } }
+		public override DateTime ConnectionStart { get{ return m_ConnStart; }
+			set { m_ConnStart = value; }
+		}
+		public override IPAddress LastConnection{ get{ return m_LastConnection; }
+			set { m_LastConnection = value; }
+		}
 		public static Process ClientProcess{ get{ return ClientProc; } }
 
-		public static bool ClientRunning
+		public override bool ClientRunning
 		{
 			get
 			{
@@ -215,41 +249,41 @@ namespace Assistant
 				}
 				catch
 				{
-					return ClientProc != null && FindUOWindow() != IntPtr.Zero;
+					return ClientProc != null && InternalFindUOWindow() != IntPtr.Zero;
 				}
 			}
 		}
 
-		public static void SetMapWndHandle( Form mapWnd )
+		public override void SetMapWndHandle( MapWindow mapWnd )
 		{
-			PostMessage( FindUOWindow(), WM_UONETEVENT, (IntPtr)UONetMessage.SetMapHWnd, mapWnd.Handle );
+			PostMessage( InternalFindUOWindow(), WM_UONETEVENT, (IntPtr)UONetMessage.SetMapHWnd, mapWnd.Handle );
 		}
 
 		public static void RequestStatbarPatch( bool preAOS )
 		{
-			PostMessage( FindUOWindow(), WM_UONETEVENT, (IntPtr)UONetMessage.StatBar, preAOS ? (IntPtr)1 : IntPtr.Zero );
+			PostMessage( InternalFindUOWindow(), WM_UONETEVENT, (IntPtr)UONetMessage.StatBar, preAOS ? (IntPtr)1 : IntPtr.Zero );
 		}
 
 		public static void SetCustomNotoHue( int hue )
 		{
-			PostMessage( FindUOWindow(), WM_UONETEVENT, (IntPtr)UONetMessage.NotoHue, (IntPtr)hue );
+			PostMessage( InternalFindUOWindow(), WM_UONETEVENT, (IntPtr)UONetMessage.NotoHue, (IntPtr)hue );
 		}
 
 	    public static void SetSmartCPU(bool enabled)
 	    {
 	        if (enabled)
-	            try { ClientCommunication.ClientProcess.PriorityClass = System.Diagnostics.ProcessPriorityClass.Normal; } catch { }
+	            try { OSIClientCommunication.ClientProcess.PriorityClass = System.Diagnostics.ProcessPriorityClass.Normal; } catch { }
 
-	        PostMessage(FindUOWindow(), WM_UONETEVENT, (IntPtr)UONetMessage.SmartCPU, (IntPtr)(enabled ? 1 : 0));
+	        PostMessage(InternalFindUOWindow(), WM_UONETEVENT, (IntPtr)UONetMessage.SmartCPU, (IntPtr)(enabled ? 1 : 0));
         }
 
 		public static void SetGameSize( int x, int y )
 		{
-			PostMessage( FindUOWindow(), WM_UONETEVENT, (IntPtr)UONetMessage.SetGameSize, (IntPtr)((x&0xFFFF)|((y&0xFFFF)<<16)) );
+			PostMessage( InternalFindUOWindow(), WM_UONETEVENT, (IntPtr)UONetMessage.SetGameSize, (IntPtr)((x&0xFFFF)|((y&0xFFFF)<<16)) );
             //PostMessageA(FindUOWindow(), WM_UONETEVENT, (IntPtr)UONetMessage.SetGameSize, (IntPtr)((x & 0xFFFF) | ((y & 0xFFFF) << 16)));
         }
 
-		public static Loader_Error LaunchClient( string client )
+		public override Loader_Error LaunchClient( string client )
 		{
 			/*string dir = Directory.GetCurrentDirectory();
 			Directory.SetCurrentDirectory( Path.GetDirectoryName( client ) );
@@ -294,12 +328,12 @@ namespace Assistant
 		}
 
 		private static bool m_ClientEnc = false;
-		internal static bool ClientEncrypted { get { return m_ClientEnc; } set { m_ClientEnc = value; } }
+		public override bool ClientEncrypted { get { return m_ClientEnc; } set { m_ClientEnc = value; } }
 
 		private static bool m_ServerEnc = false;
-		internal static bool ServerEncrypted { get { return m_ServerEnc; } set { m_ServerEnc = value; } }
+		public override bool ServerEncrypted { get { return m_ServerEnc; } set { m_ServerEnc = value; } }
 
-		internal static bool InstallHooks( IntPtr mainWindow )
+		public override bool InstallHooks( IntPtr mainWindow )
 		{
 			InitError error;
 			int flags = 0;
@@ -353,7 +387,7 @@ namespace Assistant
 			}
 
 			if ( Config.GetBool( "OldStatBar" ) )
-				ClientCommunication.RequestStatbarPatch( true );
+				OSIClientCommunication.RequestStatbarPatch( true );
 
 			return true;
 		}
@@ -361,7 +395,7 @@ namespace Assistant
 		private static uint m_ServerIP;
 		private static ushort m_ServerPort;
 
-		internal static void SetConnectionInfo( IPAddress addr, int port )
+		public override void SetConnectionInfo( IPAddress addr, int port )
 		{
 #pragma warning disable 618
 			m_ServerIP = (uint)addr.Address;
@@ -371,17 +405,17 @@ namespace Assistant
 
 		public static void SetNegotiate( bool negotiate )
 		{
-			PostMessage( FindUOWindow(), WM_UONETEVENT, (IntPtr)UONetMessage.Negotiate, (IntPtr)(negotiate ? 1 : 0) );
+			PostMessage( InternalFindUOWindow(), WM_UONETEVENT, (IntPtr)UONetMessage.Negotiate, (IntPtr)(negotiate ? 1 : 0) );
 		}
 
-		public static bool Attach( int pid )
+		public override bool Attach( int pid )
 		{
 			ClientProc = null;
 			ClientProc = Process.GetProcessById( pid );
 			return ClientProc != null;
 		}
 
-		public static void Close()
+		public override void Close()
 		{
 			Shutdown( true );
 			if ( ClientProc != null && !ClientProc.HasExited )
@@ -401,7 +435,7 @@ namespace Assistant
 				return val.ToString();
 		}
 
-		public static void RequestTitlebarUpdate()
+		public override void RequestTitlebarUpdate()
 		{
 			// throttle updates, since things like counters might request 1000000 million updates/sec
 			if ( m_TBTimer == null )
@@ -419,7 +453,7 @@ namespace Assistant
 
 			protected override void OnTick()
 			{
-				UpdateTitleBar();
+			 UpdateTitleBar();
 			}
 		}
 
@@ -508,7 +542,7 @@ namespace Assistant
 	            sb.Replace(@"{stealthsteps}", StealthSteps.Counting ? StealthSteps.Count.ToString() : "-");
                 //ClientCommunication.ConnectionStart != DateTime.MinValue )
                 //time = (int)((DateTime.UtcNow - ClientCommunication.ConnectionStart).TotalSeconds);
-                 sb.Replace(@"{uptime}", ConnectionStart != DateTime.MinValue ? Utility.FormatTime((int)((DateTime.UtcNow - ConnectionStart).TotalSeconds)) : "-");
+                 sb.Replace(@"{uptime}", Instance.ConnectionStart != DateTime.MinValue ? Utility.FormatTime((int)((DateTime.UtcNow - Instance.ConnectionStart).TotalSeconds)) : "-");
 
 	            sb.Replace(@"{dps}", DamageTracker.Running ? $"{DamageTracker.DamagePerSecond:N2}" : "-");
 	            sb.Replace(@"{maxdps}", DamageTracker.Running ? $"{DamageTracker.MaxDamagePerSecond:N2}" : "-");
@@ -595,7 +629,7 @@ namespace Assistant
 			*(m_TitleStr+clen) = 0;
 			CommMutex.ReleaseMutex();
 
-			PostMessage( FindUOWindow(), WM_CUSTOMTITLE, IntPtr.Zero, IntPtr.Zero );
+			PostMessage( InternalFindUOWindow(), WM_CUSTOMTITLE, IntPtr.Zero, IntPtr.Zero );
 		}
 
 		private static void FatalInit( InitError error )
@@ -752,7 +786,7 @@ namespace Assistant
 						if ( lParam != 0 && !razor.TopMost )
 						{
 							razor.TopMost = true;
-							SetForegroundWindow( FindUOWindow() );
+							SetForegroundWindow( InternalFindUOWindow() );
 						}
 						else if ( lParam == 0 && razor.TopMost )
 						{
@@ -767,7 +801,7 @@ namespace Assistant
 						if ( lParam != 0 && !razor.MapWindow.TopMost )
 						{
 							razor.MapWindow.TopMost = true;
-							SetForegroundWindow( FindUOWindow() );
+							SetForegroundWindow( InternalFindUOWindow() );
 						}
 						else if ( lParam == 0 && razor.MapWindow.TopMost )
 						{
@@ -798,7 +832,7 @@ namespace Assistant
 
 				// Unknown
 				default:
-					MessageBox.Show( Engine.ActiveWindow, "Unknown message from uo client\n" + ((int)wParam).ToString(), "Error?" );
+					//MessageBox.Show( Engine.ActiveWindow, "Unknown message from uo client\n" + ((int)wParam).ToString(), "Error?" );
 					break;
 			}
 
@@ -845,7 +879,7 @@ namespace Assistant
 			return false;
 		}
 
-		internal static void SendToServer( Packet p )
+		public override void SendToServer( Packet p )
 		{
 			if ( !m_Ready )
 				return;
@@ -860,15 +894,9 @@ namespace Assistant
 			}
 		}
 
-		internal static void SendToServer( PacketReader pr )
-		{
-			if ( !m_Ready )
-				return;
+		
 
-			SendToServer( MakePacketFrom( pr ) );
-		}
-
-		internal static void SendToClient( Packet p )
+		public override void SendToClient( Packet p )
 		{
 			if ( !m_Ready || p.Length <= 0 )
 				return;
@@ -883,15 +911,9 @@ namespace Assistant
 			}
 		}
 
-		internal static void SendToClient( PacketReader pr )
-		{
-			if ( !m_Ready )
-				return;
+	
 
-			SendToClient( MakePacketFrom( pr ) );
-		}
-
-		internal static void ForceSendToClient( Packet p )
+		public override void ForceSendToClient( Packet p )
 		{
 			byte[] data = p.Compile();
 
@@ -904,7 +926,7 @@ namespace Assistant
 			CommMutex.ReleaseMutex();
 		}
 
-		internal static void ForceSendToServer( Packet p )
+		public static void ForceSendToServer( Packet p )
 		{
 			if ( p == null || p.Length <= 0 )
 				return;
@@ -924,7 +946,7 @@ namespace Assistant
 		private static void InitSendFlush()
 		{
 			if ( m_OutSend->Length == 0 )
-				PostMessage( FindUOWindow(), WM_UONETEVENT, (IntPtr)UONetMessage.Send, IntPtr.Zero );
+				PostMessage( InternalFindUOWindow(), WM_UONETEVENT, (IntPtr)UONetMessage.Send, IntPtr.Zero );
 		}
 
 		private static void CopyToBuffer( Buffer *buffer, byte *data, int len )
@@ -1047,6 +1069,8 @@ namespace Assistant
 			HandleComm( m_InSend, m_OutSend, m_SendQueue, PacketPath.ClientToServer );
 			m_QueueSend = false;
 		}
+
+		
 	}
 
 }
