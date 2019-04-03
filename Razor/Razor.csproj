@@ -257,6 +257,7 @@
     </Compile>
     <Compile Include="Network\ClientComm\ClientComm.cs" />
     <Compile Include="Network\ClientComm\PacketsTable.cs" />
+    <Compile Include="Network\ClientComm\Windows.cs" />
     <Compile Include="Network\Handlers.cs">
       <SubType>Code</SubType>
     </Compile>
