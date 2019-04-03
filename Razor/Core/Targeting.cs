@@ -179,13 +179,13 @@ namespace Assistant
         private static void AttackLastComb()
         {
             if (m_LastCombatant.IsMobile)
-                ClientCommunication.SendToServer(new AttackReq(m_LastCombatant));
+                ClientCommunication.Instance.SendToServer(new AttackReq(m_LastCombatant));
         }
 
         private static void AttackLastTarg()
         {
             if (m_LastTarget != null && m_LastTarget.Serial.IsMobile)
-                ClientCommunication.SendToServer(new AttackReq(m_LastTarget.Serial));
+                ClientCommunication.Instance.SendToServer(new AttackReq(m_LastTarget.Serial));
         }
 
         private static void OnClearQueue()
@@ -240,7 +240,7 @@ namespace Assistant
             m_OnCancel = onCancel;
 
             m_ClientTarget = m_HasTarget = true;
-            ClientCommunication.SendToClient(new Target(LocalTargID, ground));
+            ClientCommunication.Instance.SendToClient(new Target(LocalTargID, ground));
             ClearQueue();
         }
 
@@ -248,7 +248,7 @@ namespace Assistant
         {
             m_ClientTarget = m_HasTarget = false;
 
-            ClientCommunication.SendToClient(new CancelTarget(LocalTargID));
+            ClientCommunication.Instance.SendToClient(new CancelTarget(LocalTargID));
             EndIntercept();
         }
 
@@ -295,7 +295,7 @@ namespace Assistant
             if (serial.IsMobile)
             {
                 LastTargetChanged();
-                ClientCommunication.SendToClient(new ChangeCombatant(serial));
+                ClientCommunication.Instance.SendToClient(new ChangeCombatant(serial));
                 m_LastCombatant = serial;
             }
         }
@@ -365,7 +365,7 @@ namespace Assistant
                     if (m != null)
                     {
                         if (lth)
-                            ClientCommunication.SendToClient(new MobileIncoming(m));
+                            ClientCommunication.Instance.SendToClient(new MobileIncoming(m));
 
                         RemoveTextFlags(m);
                     }
@@ -381,7 +381,7 @@ namespace Assistant
                     if (m != null)
                     {
                         if (IsLastTarget(m) && lth)
-                            ClientCommunication.SendToClient(new MobileIncoming(m));
+                            ClientCommunication.Instance.SendToClient(new MobileIncoming(m));
 
                         CheckLastTargetRange(m);
 
@@ -506,7 +506,7 @@ namespace Assistant
 
         public static void RandomTarget(params int[] noto)
         {
-            if (!ClientCommunication.AllowBit(FeatureBit.RandomTargets))
+            if (!ClientCommunication.Instance.AllowBit(FeatureBit.RandomTargets))
                 return;
 
             List<Mobile> list = new List<Mobile>();
@@ -538,7 +538,7 @@ namespace Assistant
 
         public static void RandomHumanoidTarget(params int[] noto)
         {
-            if (!ClientCommunication.AllowBit(FeatureBit.RandomTargets))
+            if (!ClientCommunication.Instance.AllowBit(FeatureBit.RandomTargets))
                 return;
 
             List<Mobile> list = new List<Mobile>();
@@ -573,7 +573,7 @@ namespace Assistant
 
         public static void RandomMonsterTarget(params int[] noto)
         {
-            if (!ClientCommunication.AllowBit(FeatureBit.RandomTargets))
+            if (!ClientCommunication.Instance.AllowBit(FeatureBit.RandomTargets))
                 return;
 
             List<Mobile> list = new List<Mobile>();
@@ -719,7 +719,7 @@ namespace Assistant
 
         public static void ClosestTarget(params int[] noto)
         {
-            if (!ClientCommunication.AllowBit(FeatureBit.ClosestTargets))
+            if (!ClientCommunication.Instance.AllowBit(FeatureBit.ClosestTargets))
                 return;
 
             List<Mobile> list = new List<Mobile>();
@@ -765,7 +765,7 @@ namespace Assistant
 
         public static void ClosestHumanoidTarget(params int[] noto)
         {
-            if (!ClientCommunication.AllowBit(FeatureBit.ClosestTargets))
+            if (!ClientCommunication.Instance.AllowBit(FeatureBit.ClosestTargets))
                 return;
 
             List<Mobile> list = new List<Mobile>();
@@ -814,7 +814,7 @@ namespace Assistant
 
         public static void ClosestMonsterTarget(params int[] noto)
         {
-            if (!ClientCommunication.AllowBit(FeatureBit.ClosestTargets))
+            if (!ClientCommunication.Instance.AllowBit(FeatureBit.ClosestTargets))
                 return;
 
             List<Mobile> list = new List<Mobile>();
@@ -890,7 +890,7 @@ namespace Assistant
             targ.Y = m.Position.Y;
             targ.Z = m.Position.Z;
 
-            ClientCommunication.SendToClient(new ChangeCombatant(m));
+            ClientCommunication.Instance.SendToClient(new ChangeCombatant(m));
             m_LastCombatant = m.Serial;
             World.Player.SendMessage(MsgLevel.Force, LocString.NewTargSet);
             
@@ -975,7 +975,7 @@ namespace Assistant
             }
             else
             {
-                ClientCommunication.SendToServer(new TargetResponse(m_CurrentID, World.Player));
+                ClientCommunication.Instance.SendToServer(new TargetResponse(m_CurrentID, World.Player));
             }
 
             return true;
@@ -1017,7 +1017,7 @@ namespace Assistant
         public static bool DoLastTarget()
         {
             TargetInfo targ;
-            if (Config.GetBool("SmartLastTarget") && ClientCommunication.AllowBit(FeatureBit.SmartLT))
+            if (Config.GetBool("SmartLastTarget") && ClientCommunication.Instance.AllowBit(FeatureBit.SmartLT))
             {
                 if (m_AllowGround && m_LastGroundTarg != null)
                     targ = m_LastGroundTarg;
@@ -1089,7 +1089,7 @@ namespace Assistant
                 }
             }
 
-            if (Config.GetBool("RangeCheckLT") && ClientCommunication.AllowBit(FeatureBit.RangeCheckLT) && (pos == Point3D.Zero || !Utility.InRange(World.Player.Position, pos, Config.GetInt("LTRange"))))
+            if (Config.GetBool("RangeCheckLT") && ClientCommunication.Instance.AllowBit(FeatureBit.RangeCheckLT) && (pos == Point3D.Zero || !Utility.InRange(World.Player.Position, pos, Config.GetInt("LTRange"))))
             {
                 if (Config.GetBool("QueueTargets"))
                     m_QueueTarget = LastTargetAction;
@@ -1108,7 +1108,7 @@ namespace Assistant
             if (m_Intercept)
                 OneTimeResponse(targ);
             else
-                ClientCommunication.SendToServer(new TargetResponse(targ));
+                ClientCommunication.Instance.SendToServer(new TargetResponse(targ));
             return true;
         }
 
@@ -1150,7 +1150,7 @@ namespace Assistant
 
             if (m_HasTarget)
             {
-                ClientCommunication.SendToServer(new TargetCancelResponse(m_CurrentID));
+                ClientCommunication.Instance.SendToServer(new TargetCancelResponse(m_CurrentID));
                 m_HasTarget = false;
             }
         }
@@ -1160,7 +1160,7 @@ namespace Assistant
             if (m_ClientTarget)
             {
                 m_FilterCancel.Add((uint)m_CurrentID);
-                ClientCommunication.SendToClient(new CancelTarget(m_CurrentID));
+                ClientCommunication.Instance.SendToClient(new CancelTarget(m_CurrentID));
                 m_ClientTarget = false;
             }
         }
@@ -1175,7 +1175,7 @@ namespace Assistant
             {
                 info.TargID = m_CurrentID;
                 m_LastGroundTarg = m_LastTarget = info;
-                ClientCommunication.SendToServer(new TargetResponse(info));
+                ClientCommunication.Instance.SendToServer(new TargetResponse(info));
             }
 
             CancelClientTarget();
@@ -1294,7 +1294,7 @@ namespace Assistant
                 m.OverheadMessage(0x03F, $"[{Language.GetString(LocString.Friend)}]");
             }
 
-            if (Config.GetBool("SmartLastTarget") && ClientCommunication.AllowBit(FeatureBit.SmartLT))
+            if (Config.GetBool("SmartLastTarget") && ClientCommunication.Instance.AllowBit(FeatureBit.SmartLT))
             {
                 bool harm = m_LastHarmTarg != null && m_LastHarmTarg.Serial == m.Serial;
                 bool bene = m_LastBeneTarg != null && m_LastBeneTarg.Serial == m.Serial;
@@ -1313,7 +1313,7 @@ namespace Assistant
         {
             if (m != null)
             {
-                if (Config.GetBool("SmartLastTarget") && ClientCommunication.AllowBit(FeatureBit.SmartLT))
+                if (Config.GetBool("SmartLastTarget") && ClientCommunication.Instance.AllowBit(FeatureBit.SmartLT))
                 {
                     if (m_LastHarmTarg != null && m_LastHarmTarg.Serial == m.Serial)
                         return true;
@@ -1397,7 +1397,7 @@ namespace Assistant
             targ.Y = m.Position.Y;
             targ.Z = m.Position.Z;
 
-            ClientCommunication.SendToClient(new ChangeCombatant(m));
+            ClientCommunication.Instance.SendToClient(new ChangeCombatant(m));
             m_LastCombatant = m.Serial;
             World.Player.SendMessage(MsgLevel.Force, LocString.NewTargSet);
 
@@ -1482,7 +1482,7 @@ namespace Assistant
             targ.Y = m.Position.Y;
             targ.Z = m.Position.Z;
 
-            ClientCommunication.SendToClient(new ChangeCombatant(m));
+            ClientCommunication.Instance.SendToClient(new ChangeCombatant(m));
             m_LastCombatant = m.Serial;
             World.Player.SendMessage(MsgLevel.Force, LocString.NewTargSet);
 
@@ -1570,7 +1570,7 @@ namespace Assistant
             targ.Y = m.Position.Y;
             targ.Z = m.Position.Z;
 
-            ClientCommunication.SendToClient(new ChangeCombatant(m));
+            ClientCommunication.Instance.SendToClient(new ChangeCombatant(m));
             m_LastCombatant = m.Serial;
             World.Player.SendMessage(MsgLevel.Force, LocString.NewTargSet);
 
@@ -1643,7 +1643,7 @@ namespace Assistant
             targ.Y = m.Position.Y;
             targ.Z = m.Position.Z;
 
-            ClientCommunication.SendToClient(new ChangeCombatant(m));
+            ClientCommunication.Instance.SendToClient(new ChangeCombatant(m));
             m_LastCombatant = m.Serial;
             World.Player.SendMessage(MsgLevel.Force, LocString.NewTargSet);
 
@@ -1718,7 +1718,7 @@ namespace Assistant
             targ.Y = m.Position.Y;
             targ.Z = m.Position.Z;
 
-            ClientCommunication.SendToClient(new ChangeCombatant(m));
+            ClientCommunication.Instance.SendToClient(new ChangeCombatant(m));
             m_LastCombatant = m.Serial;
             World.Player.SendMessage(MsgLevel.Force, LocString.NewTargSet);
 
@@ -1796,7 +1796,7 @@ namespace Assistant
             targ.Y = m.Position.Y;
             targ.Z = m.Position.Z;
 
-            ClientCommunication.SendToClient(new ChangeCombatant(m));
+            ClientCommunication.Instance.SendToClient(new ChangeCombatant(m));
             m_LastCombatant = m.Serial;
             World.Player.SendMessage(MsgLevel.Force, LocString.NewTargSet);
 
@@ -1883,7 +1883,7 @@ namespace Assistant
             targ.Y = m.Position.Y;
             targ.Z = m.Position.Z;
 
-            ClientCommunication.SendToClient(new ChangeCombatant(m));
+            ClientCommunication.Instance.SendToClient(new ChangeCombatant(m));
             m_LastCombatant = m.Serial;
             World.Player.SendMessage(MsgLevel.Force, LocString.NewTargSet);
 
@@ -1949,7 +1949,7 @@ namespace Assistant
             targ.Y = m.Position.Y;
             targ.Z = m.Position.Z;
 
-            ClientCommunication.SendToClient(new ChangeCombatant(m));
+            ClientCommunication.Instance.SendToClient(new ChangeCombatant(m));
             m_LastCombatant = m.Serial;
             World.Player.SendMessage(MsgLevel.Force, LocString.NewTargSet);
 
@@ -1963,7 +1963,7 @@ namespace Assistant
 
             if (m_HasTarget && m != null && m_LastTarget != null && m.Serial == m_LastTarget.Serial && m_QueueTarget == LastTargetAction)
             {
-                if (Config.GetBool("RangeCheckLT") && ClientCommunication.AllowBit(FeatureBit.RangeCheckLT))
+                if (Config.GetBool("RangeCheckLT") && ClientCommunication.Instance.AllowBit(FeatureBit.RangeCheckLT))
                 {
                     if (Utility.InRange(World.Player.Position, m.Position, Config.GetInt("LTRange")))
                     {
@@ -1979,7 +1979,7 @@ namespace Assistant
             if (World.Player == null)
                 return false;
 
-            if (targID == m_SpellTargID && ser.IsMobile && (World.Player.LastSpell == Spell.ToID(1, 4) || World.Player.LastSpell == Spell.ToID(4, 5)) && Config.GetBool("BlockHealPoison") && ClientCommunication.AllowBit(FeatureBit.BlockHealPoisoned))
+            if (targID == m_SpellTargID && ser.IsMobile && (World.Player.LastSpell == Spell.ToID(1, 4) || World.Player.LastSpell == Spell.ToID(4, 5)) && Config.GetBool("BlockHealPoison") && ClientCommunication.Instance.AllowBit(FeatureBit.BlockHealPoisoned))
             {
                 Mobile m = World.FindMobile(ser);
 
@@ -2199,7 +2199,7 @@ namespace Assistant
             {
                 CancelClientTarget();
                 m_ClientTarget = m_HasTarget = true;
-                ClientCommunication.SendToClient(new Target(m_CurrentID, m_AllowGround, m_CurFlags));
+                ClientCommunication.Instance.SendToClient(new Target(m_CurrentID, m_AllowGround, m_CurFlags));
             }
         }
 

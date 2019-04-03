@@ -770,8 +770,8 @@ namespace Assistant.Macros
 
         public override bool Perform()
         {
-            ClientCommunication.SendToClient(new CloseGump(World.Player.CurrentGumpI));
-            ClientCommunication.SendToServer(new GumpResponse(World.Player.CurrentGumpS, World.Player.CurrentGumpI, m_ButtonID, m_Switches, m_TextEntries));
+            ClientCommunication.Instance.SendToClient(new CloseGump(World.Player.CurrentGumpI));
+            ClientCommunication.Instance.SendToServer(new GumpResponse(World.Player.CurrentGumpS, World.Player.CurrentGumpI, m_ButtonID, m_Switches, m_TextEntries));
             World.Player.HasGump = false;
             return true;
         }
@@ -849,7 +849,7 @@ namespace Assistant.Macros
 
         public override bool Perform()
         {
-            ClientCommunication.SendToServer(new MenuResponse(World.Player.CurrentMenuS, World.Player.CurrentMenuI, m_Index, m_ItemID, m_Hue));
+            ClientCommunication.Instance.SendToServer(new MenuResponse(World.Player.CurrentMenuS, World.Player.CurrentMenuI, m_Index, m_ItemID, m_Hue));
             World.Player.HasMenu = false;
             return true;
         }
@@ -1441,7 +1441,7 @@ namespace Assistant.Macros
                 hue = World.Player.SpeechHue;
             }
             
-            ClientCommunication.SendToServer(new ClientUniMessage(m_Type, hue, m_Font, m_Lang, m_Keywords, m_Speech));
+            ClientCommunication.Instance.SendToServer(new ClientUniMessage(m_Type, hue, m_Font, m_Lang, m_Keywords, m_Speech));
             return true;
         }
 
@@ -1529,7 +1529,7 @@ namespace Assistant.Macros
 
         public override bool Perform()
         {
-            ClientCommunication.SendToServer(new UseSkill(m_Skill));
+            ClientCommunication.Instance.SendToServer(new UseSkill(m_Skill));
             return true;
         }
 
@@ -1676,7 +1676,7 @@ namespace Assistant.Macros
 
         public override bool Perform()
         {
-            ClientCommunication.SendToServer(new UseAbility(m_Ability));
+            ClientCommunication.Instance.SendToServer(new UseAbility(m_Ability));
             return true;
         }
 
@@ -1871,9 +1871,9 @@ namespace Assistant.Macros
                 //m_LastSeq = World.Player.WalkSequence;
                 m_LastWalk = DateTime.UtcNow;
 
-                //ClientCommunication.SendToClient(new MobileUpdate(World.Player));
-                //ClientCommunication.SendToClient(new ForceWalk(m_Dir));
-                //ClientCommunication.SendToServer(new WalkRequest(m_Dir, World.Player.WalkSequence));
+                //ClientCommunication.Instance.SendToClient(new MobileUpdate(World.Player));
+                //ClientCommunication.Instance.SendToClient(new ForceWalk(m_Dir));
+                //ClientCommunication.Instance.SendToServer(new WalkRequest(m_Dir, World.Player.WalkSequence));
                 //World.Player.MoveReq(m_Dir, World.Player.WalkSequence);
 
                 int direction;
@@ -1909,7 +1909,7 @@ namespace Assistant.Macros
                         break;
                 }
               
-                SendMessage(ClientCommunication.FindUOWindow(), WM_KEYDOWN, (IntPtr)direction, (IntPtr)1);
+                SendMessage(ClientCommunication.Instance.FindUOWindow(), WM_KEYDOWN, (IntPtr)direction, (IntPtr)1);
 
                 return false;
             }
@@ -2478,7 +2478,7 @@ namespace Assistant.Macros
 
                 case IfVarType.Poisoned:
                     {
-                        if (ClientCommunication.AllowBit(FeatureBit.BlockHealPoisoned))
+                        if (ClientCommunication.Instance.AllowBit(FeatureBit.BlockHealPoisoned))
                             return World.Player.Poisoned;
                         else
                             return false;
@@ -2658,7 +2658,7 @@ namespace Assistant.Macros
 
         public override bool Perform()
         {
-            if (ClientCommunication.AllowBit(FeatureBit.LoopingMacros) || m_Key.DispName.IndexOf(Language.GetString(LocString.PlayA1).Replace(@"{0}", "")) == -1)
+            if (ClientCommunication.Instance.AllowBit(FeatureBit.LoopingMacros) || m_Key.DispName.IndexOf(Language.GetString(LocString.PlayA1).Replace(@"{0}", "")) == -1)
                 m_Key.Callback();
             return true;
         }
@@ -2783,8 +2783,8 @@ namespace Assistant.Macros
             if (s == Serial.Zero && World.Player != null)
                 s = World.Player.Serial;
 
-            ClientCommunication.SendToServer(new ContextMenuRequest(s));
-            ClientCommunication.SendToServer(new ContextMenuResponse(s, m_Idx));
+            ClientCommunication.Instance.SendToServer(new ContextMenuRequest(s));
+            ClientCommunication.Instance.SendToServer(new ContextMenuResponse(s, m_Idx));
             return true;
         }
 

@@ -25,10 +25,11 @@
     </FileUpgradeFlags>
     <UpgradeBackupLocation>
     </UpgradeBackupLocation>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <OldToolsVersion>2.0</OldToolsVersion>
     <IsWebBootstrapper>false</IsWebBootstrapper>
-    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
     <PublishUrl>E:\Programming\razor-markdwags\Build\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -99,6 +100,9 @@
     <TargetZone>LocalIntranet</TargetZone>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="cuoapi, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\..\ClassicUORazor\cuoapi.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net40\Newtonsoft.Json.dll</HintPath>
@@ -247,9 +251,12 @@
     <Compile Include="Core\MsgQueue.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Network\ClientComm.cs">
+    <Compile Include="Network\ClientComm\CUOClientCommunication.cs" />
+    <Compile Include="Network\ClientComm\OSIClientComm.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Network\ClientComm\ClientComm.cs" />
+    <Compile Include="Network\ClientComm\PacketsTable.cs" />
     <Compile Include="Network\Handlers.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -456,7 +463,6 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
     <None Include="packages.config" />
     <None Include="Razor.manifest" />
   </ItemGroup>

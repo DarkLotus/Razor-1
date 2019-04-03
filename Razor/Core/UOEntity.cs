@@ -126,8 +126,8 @@ namespace Assistant
 
 		public void OPLChanged()
 		{
-			//ClientCommunication.SendToClient( m_ObjPropList.BuildPacket() );
-			ClientCommunication.SendToClient( new OPLInfo( Serial, OPLHash ) );
+			//ClientCommunication.Instance.SendToClient( m_ObjPropList.BuildPacket() );
+			ClientCommunication.Instance.SendToClient( new OPLInfo( Serial, OPLHash ) );
 		}
 	}
 }

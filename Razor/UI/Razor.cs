@@ -3837,10 +3837,10 @@ namespace Assistant
 
         protected override void WndProc(ref Message msg)
         {
-            if (msg.Msg == ClientCommunication.WM_UONETEVENT)
-                msg.Result = (IntPtr)(ClientCommunication.OnMessage(this, (uint)msg.WParam.ToInt32(), msg.LParam.ToInt32()) ? 1 : 0);
-            else if (msg.Msg == ClientCommunication.WM_COPYDATA)
-                msg.Result = (IntPtr)(ClientCommunication.OnCopyData(msg.WParam, msg.LParam) ? 1 : 0);
+            if (msg.Msg == OSIClientCommunication.WM_UONETEVENT)
+                msg.Result = (IntPtr)(OSIClientCommunication.OnMessage(this, (uint)msg.WParam.ToInt32(), msg.LParam.ToInt32()) ? 1 : 0);
+            else if (msg.Msg == OSIClientCommunication.WM_COPYDATA)
+                msg.Result = (IntPtr)(OSIClientCommunication.OnCopyData(msg.WParam, msg.LParam) ? 1 : 0);
             else if (Config.GetBool("EnableUOAAPI") &&  msg.Msg >= (int)UOAssist.UOAMessage.First && msg.Msg <= (int)UOAssist.UOAMessage.Last)
                 msg.Result = (IntPtr)UOAssist.OnUOAMessage(this, msg.Msg, msg.WParam.ToInt32(), msg.LParam.ToInt32());
             else
@@ -3849,9 +3849,14 @@ namespace Assistant
 
         private void DisableCloseButton()
         {
-            IntPtr menu = GetSystemMenu(this.Handle, false);
-            EnableMenuItem(menu, 0xF060, 0x00000002); //menu, SC_CLOSE, MF_BYCOMMAND|MF_GRAYED
-            m_CanClose = false;
+            if (Environment.OSVersion.Platform != PlatformID.Unix &&
+                Environment.OSVersion.Platform != PlatformID.MacOSX)
+            {
+                IntPtr menu = GetSystemMenu(this.Handle, false);
+                EnableMenuItem(menu, 0xF060, 0x00000002); //menu, SC_CLOSE, MF_BYCOMMAND|MF_GRAYED
+                m_CanClose = false;
+            }
+            
         }
 
         private void MainForm_Load(object sender, System.EventArgs e)
@@ -3872,7 +3877,7 @@ namespace Assistant
             //this.Text = String.Format( this.Text, Engine.Version );
             UpdateTitle();
 
-            if (!ClientCommunication.InstallHooks(this.Handle)) // WaitForInputIdle done here
+            if (!ClientCommunication.Instance.InstallHooks(this.Handle)) // WaitForInputIdle done here
             {
                 m_CanClose = true;
                 SplashScreen.End();
@@ -4154,7 +4159,7 @@ namespace Assistant
             dispDeltaOverhead.Checked = Config.GetBool("DisplaySkillChangesOverhead");
 
             // Disable SmartCPU in case it was enabled before the feature was removed
-            ClientCommunication.SetSmartCPU(false);
+            //ClientCommunication.Instance.SetSmartCPU(false);
 
             m_Initializing = false;
         }
@@ -4171,7 +4176,7 @@ namespace Assistant
         {
             int hue = 0;
 
-            using (StreamReader r = new StreamReader($"{Config.GetInstallDirectory()}\\animdata.json"))
+            using (StreamReader r = new StreamReader($"{Config.GetInstallDirectory()}/animdata.json"))
             {
                 string json = r.ReadToEnd();
                 List<AnimData> items = JsonConvert.DeserializeObject<List<AnimData>>(json);
@@ -4344,7 +4349,7 @@ namespace Assistant
 
         private void UpdateRazorStatus()
         {
-            if (!ClientCommunication.ClientRunning)
+            if (!ClientCommunication.Instance.ClientRunning)
                 Close();
 
             uint ps = m_OutPrev;
@@ -4356,8 +4361,8 @@ namespace Assistant
                 return;
 
             int time = 0;
-            if (ClientCommunication.ConnectionStart != DateTime.MinValue)
-                time = (int) ((DateTime.UtcNow - ClientCommunication.ConnectionStart).TotalSeconds);
+            if (ClientCommunication.Instance.ConnectionStart != DateTime.MinValue)
+                time = (int) ((DateTime.UtcNow - ClientCommunication.Instance.ConnectionStart).TotalSeconds);
 
             if (String.IsNullOrEmpty(statusBox.SelectedText))
             {
@@ -4390,7 +4395,7 @@ namespace Assistant
 
                     for (uint i = 0; i < FeatureBit.MaxBit; i++)
                     {
-                        if (!ClientCommunication.AllowBit(i))
+                        if (!ClientCommunication.Instance.AllowBit(i))
                         {
                             allAllowed = false;
 
@@ -4588,12 +4593,12 @@ namespace Assistant
 
             try
             {
-                ClientCommunication.SendToServer(new SetSkillLock(s.Index, lockType));
+                ClientCommunication.Instance.SendToServer(new SetSkillLock(s.Index, lockType));
 
                 s.Lock = lockType;
                 UpdateSkill(s);
 
-                ClientCommunication.SendToClient(new SkillUpdate(s));
+                ClientCommunication.Instance.SendToClient(new SkillUpdate(s));
             }
             catch
             {
@@ -4706,10 +4711,10 @@ namespace Assistant
             for (short i = 0; i < Skill.Count; i++)
             {
                 World.Player.Skills[i].Lock = type;
-                ClientCommunication.SendToServer(new SetSkillLock(i, type));
+                ClientCommunication.Instance.SendToServer(new SetSkillLock(i, type));
             }
 
-            ClientCommunication.SendToClient(new SkillsList());
+            ClientCommunication.Instance.SendToClient(new SkillsList());
             RedrawSkills();
         }
 
@@ -4758,14 +4763,14 @@ namespace Assistant
         {
             titleStr.Enabled = showInBar.Checked;
             Config.SetProperty("TitleBarDisplay", showInBar.Checked);
-            ClientCommunication.RequestTitlebarUpdate();
+            ClientCommunication.Instance.RequestTitlebarUpdate();
         }
 
         private void titleStr_TextChanged(object sender, System.EventArgs e)
         {
             Config.SetProperty("TitleBarText", titleStr.Text.TrimEnd());
             if (Config.GetBool("TitleBarDisplay"))
-                ClientCommunication.RequestTitlebarUpdate();
+                ClientCommunication.Instance.RequestTitlebarUpdate();
         }
 
         private void counters_ItemCheck(object sender, System.Windows.Forms.ItemCheckEventArgs e)
@@ -4773,7 +4778,7 @@ namespace Assistant
             if (e.Index >= 0 && e.Index < Counter.List.Count && !Counter.SupressChecks)
             {
                 ((Counter) (counters.Items[e.Index].Tag)).SetEnabled(e.NewValue == CheckState.Checked);
-                ClientCommunication.RequestTitlebarUpdate();
+                ClientCommunication.Instance.RequestTitlebarUpdate();
                 counters.Sort();
                 //counters.Refresh();
             }
@@ -4834,7 +4839,7 @@ namespace Assistant
                         Config.SetProfileFor(World.Player);
                 }
 
-                ClientCommunication.RequestTitlebarUpdate();
+                ClientCommunication.Instance.RequestTitlebarUpdate();
             }
             else
             {
@@ -4947,7 +4952,7 @@ namespace Assistant
                                     Config.SetProfileFor(World.Player);
                             }
 
-                            ClientCommunication.RequestTitlebarUpdate();
+                            ClientCommunication.Instance.RequestTitlebarUpdate();
                         }
 
                         m_ProfileConfirmLoad = true;
@@ -4974,7 +4979,7 @@ namespace Assistant
 
         private void MainForm_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            if (!m_CanClose && ClientCommunication.ClientRunning)
+            if (!m_CanClose && ClientCommunication.Instance.ClientRunning)
             {
                 DisableCloseButton();
                 e.Cancel = true;
@@ -5280,12 +5285,12 @@ namespace Assistant
             chkPass.Checked = hk.SendToUO;
 
             if ((hk.LocName >= (int) LocString.DrinkHeal && hk.LocName <= (int) LocString.DrinkAg &&
-                 !ClientCommunication.AllowBit(FeatureBit.PotionHotkeys)) ||
+                 !ClientCommunication.Instance.AllowBit(FeatureBit.PotionHotkeys)) ||
                 (hk.LocName >= (int) LocString.TargCloseRed && hk.LocName <= (int) LocString.TargCloseCriminal &&
-                 !ClientCommunication.AllowBit(FeatureBit.ClosestTargets)) ||
+                 !ClientCommunication.Instance.AllowBit(FeatureBit.ClosestTargets)) ||
                 (((hk.LocName >= (int) LocString.TargRandRed && hk.LocName <= (int) LocString.TargRandNFriend) ||
                   (hk.LocName >= (int) LocString.TargRandEnemyHuman && hk.LocName <= (int) LocString.TargRandCriminal)
-                 ) && !ClientCommunication.AllowBit(FeatureBit.RandomTargets)))
+                 ) && !ClientCommunication.Instance.AllowBit(FeatureBit.RandomTargets)))
             {
                 LockControl(chkCtrl);
                 LockControl(chkAlt);
@@ -5766,7 +5771,7 @@ namespace Assistant
         {
             Config.SetProperty("ShowNotoHue", showNotoHue.Checked);
             if (showNotoHue.Checked)
-                ClientCommunication.RequestTitlebarUpdate();
+                ClientCommunication.Instance.RequestTitlebarUpdate();
         }
 
         private void recount_Click(object sender, System.EventArgs e)
@@ -7336,7 +7341,7 @@ namespace Assistant
         {
             // Fuck windows, seriously.
 
-            ClientCommunication.BringToFront(this.Handle);
+            ClientCommunication.Instance.BringToFront(this.Handle);
             if (Config.GetBool("AlwaysOnTop"))
                 this.TopMost = true;
             if (WindowState != FormWindowState.Normal)
@@ -7373,13 +7378,13 @@ namespace Assistant
         private void titlebarImages_CheckedChanged(object sender, System.EventArgs e)
         {
             Config.SetProperty("TitlebarImages", titlebarImages.Checked);
-            ClientCommunication.RequestTitlebarUpdate();
+            ClientCommunication.Instance.RequestTitlebarUpdate();
         }
 
         private void highlightSpellReags_CheckedChanged(object sender, System.EventArgs e)
         {
             Config.SetProperty("HighlightReagents", highlightSpellReags.Checked);
-            ClientCommunication.RequestTitlebarUpdate();
+            ClientCommunication.Instance.RequestTitlebarUpdate();
         }
 
         private void actionStatusMsg_CheckedChanged(object sender, System.EventArgs e)
@@ -7791,28 +7796,28 @@ namespace Assistant
 
             m_LockBoxes.Clear();
 
-            if (!ClientCommunication.AllowBit(FeatureBit.SmartLT))
+            if (!ClientCommunication.Instance.AllowBit(FeatureBit.SmartLT))
                 LockControl(this.smartLT);
 
-            if (!ClientCommunication.AllowBit(FeatureBit.RangeCheckLT))
+            if (!ClientCommunication.Instance.AllowBit(FeatureBit.RangeCheckLT))
                 LockControl(this.rangeCheckLT);
 
-            if (!ClientCommunication.AllowBit(FeatureBit.AutoOpenDoors))
+            if (!ClientCommunication.Instance.AllowBit(FeatureBit.AutoOpenDoors))
                 LockControl(this.autoOpenDoors);
 
-            if (!ClientCommunication.AllowBit(FeatureBit.UnequipBeforeCast))
+            if (!ClientCommunication.Instance.AllowBit(FeatureBit.UnequipBeforeCast))
                 LockControl(this.spellUnequip);
 
-            if (!ClientCommunication.AllowBit(FeatureBit.AutoPotionEquip))
+            if (!ClientCommunication.Instance.AllowBit(FeatureBit.AutoPotionEquip))
                 LockControl(this.potionEquip);
 
-            if (!ClientCommunication.AllowBit(FeatureBit.BlockHealPoisoned))
+            if (!ClientCommunication.Instance.AllowBit(FeatureBit.BlockHealPoisoned))
                 LockControl(this.blockHealPoison);
 
-            if (!ClientCommunication.AllowBit(FeatureBit.LoopingMacros))
+            if (!ClientCommunication.Instance.AllowBit(FeatureBit.LoopingMacros))
                 LockControl(this.loopMacro);
 
-            if (!ClientCommunication.AllowBit(FeatureBit.OverheadHealth))
+            if (!ClientCommunication.Instance.AllowBit(FeatureBit.OverheadHealth))
             {
                 LockControl(this.showHealthOH);
                 LockControl(this.healthFmt);
@@ -8171,20 +8176,20 @@ namespace Assistant
 
         private void disableSmartCPU_Click(object sender, EventArgs e)
         {
-            ClientCommunication.SetSmartCPU(false);
+            //ClientCommunication.SetSmartCPU(false);
         }
 
         private void lightLevelBar_Scroll(object sender, EventArgs e)
         {
-            if (ClientCommunication.AllowBit(FeatureBit.LightFilter) && World.Player != null)
+            if (ClientCommunication.Instance.AllowBit(FeatureBit.LightFilter) && World.Player != null)
             {
                 byte selectedLightLevel = Convert.ToByte(lightLevelBar.Maximum - lightLevelBar.Value);
 
                 World.Player.LocalLightLevel = 0;
                 World.Player.GlobalLightLevel = selectedLightLevel;
 
-                ClientCommunication.SendToClient(new GlobalLightLevel(selectedLightLevel));
-                ClientCommunication.SendToClient(new PersonalLightLevel(World.Player));
+                ClientCommunication.Instance.SendToClient(new GlobalLightLevel(selectedLightLevel));
+                ClientCommunication.Instance.SendToClient(new PersonalLightLevel(World.Player));
 
                 double percent = Math.Round((lightLevelBar.Value / (double) lightLevelBar.Maximum) * 100.0);
 
@@ -8488,7 +8493,7 @@ namespace Assistant
 
             if (seasonList.SelectedIndex < 5)
             {
-                ClientCommunication.ForceSendToClient(new SeasonChange(seasonList.SelectedIndex, true));
+                ClientCommunication.Instance.ForceSendToClient(new SeasonChange(seasonList.SelectedIndex, true));
             }
         }
 

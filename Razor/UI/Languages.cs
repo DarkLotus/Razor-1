@@ -4,6 +4,7 @@ using System;
 using System.Text;
 using System.IO;
 using System.Collections;
+using System.Diagnostics;
 using System.Windows.Forms;
 using Ultima;
 
@@ -592,6 +593,7 @@ namespace Assistant
 
         public static bool Load(string lang)
         {
+
             lang = lang.ToUpper();
             if (m_Current != null && m_Current == lang)
                 return true;

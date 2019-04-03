@@ -6,17 +6,51 @@ using System.Windows.Forms;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Security.Principal;
+using CUO_API;
 
 namespace Assistant
-{
+{    
+    public enum ClientVersions
+    {
+        CV_OLD = (1 << 24) | (0 << 16) | (0 << 8) | 0, // Original game
+        CV_200 = (2 << 24) | (0 << 16) | (0 << 8) | 0, // T2A Introduction. Adds screen dimensions packet
+        CV_204C = (2 << 24) | (0 << 16) | (4 << 8) | 2, // Adds *.def files
+        CV_305D = (3 << 24) | (0 << 16) | (5 << 8) | 3, // Renaissance. Expanded character slots.
+        CV_306E = (3 << 24) | (0 << 16) | (0 << 8) | 0, // Adds a packet with the client type, switches to mp3 from midi for sound files
+        CV_308D = (3 << 24) | (0 << 16) | (8 << 8) | 3, // Adds maximum stats to the status bar
+        CV_308J = (3 << 24) | (0 << 16) | (8 << 8) | 9, // Adds followers to the status bar
+        CV_308Z = (3 << 24) | (0 << 16) | (8 << 8) | 25, // Age of Shadows. Adds paladin, necromancer, custom housing, resists, profession selection window, removes save password checkbox
+        CV_400B = (4 << 24) | (0 << 16) | (0 << 8) | 1, // Deletes tooltips
+        CV_405A = (4 << 24) | (0 << 16) | (5 << 8) | 0, // Adds ninja, samurai
+        CV_4011D = (4 << 24) | (0 << 16) | (11 << 8) | 3, // Adds elven race
+        CV_500A = (5 << 24) | (0 << 16) | (0 << 8) | 0, // Paperdoll buttons journal becomes quests, chat becomes guild. Use mega FileManager.Cliloc. Removes verdata.mul.
+        CV_5020 = (5 << 24) | (0 << 16) | (2 << 8) | 0, // Adds buff bar
+        CV_5090 = (5 << 24) | (0 << 16) | (9 << 8) | 0, //
+        CV_6000 = (6 << 24) | (0 << 16) | (0 << 8) | 0, // Adds colored guild/all chat and ignore system. New targeting systems, object properties and handles.
+        CV_6013 = (6 << 24) | (0 << 16) | (1 << 8) | 3, //
+        CV_6017 = (6 << 24) | (0 << 16) | (1 << 8) | 8, //
+        CV_6040 = (6 << 24) | (0 << 16) | (4 << 8) | 0, // Increased number of player slots
+        CV_6060 = (6 << 24) | (0 << 16) | (6 << 8) | 0, //
+        CV_60142 = (6 << 24) | (0 << 16) | (14 << 8) | 2, //
+        CV_60144 = (6 << 24) | (0 << 16) | (14 << 8) | 4, // Adds gargoyle race.
+        CV_7000 = (7 << 24) | (0 << 16) | (0 << 8) | 0, //
+        CV_7090 = (7 << 24) | (0 << 16) | (9 << 8) | 0, //
+        CV_70130 = (7 << 24) | (0 << 16) | (13 << 8) | 0, //
+        CV_70160 = (7 << 24) | (0 << 16) | (16 << 8) | 0, //
+        CV_70180 = (7 << 24) | (0 << 16) | (18 << 8) | 0, //
+        CV_70240 = (7 << 24) | (0 << 16) | (24 << 8) | 0, // *.mul -> *.uop
+        CV_70331 = (7 << 24) | (0 << 16) | (33 << 8) | 1 //
+    }
     public class Engine
     {
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
+            Debugger.Break();
             if (e.IsTerminating)
             {
-                ClientCommunication.Close();
+                ClientCommunication.Instance.Close();
                 m_Running = false;
 
                 new MessageDialog("Unhandled Exception", !e.IsTerminating, e.ExceptionObject.ToString()).ShowDialog(
@@ -43,124 +77,15 @@ namespace Assistant
 
         private static Version m_ClientVersion = null;
 
-        public static Version ClientVersion
-        {
-            get
-            {
-                if (m_ClientVersion == null || m_ClientVersion.Major < 2)
-                {
-                    string[] split = ClientCommunication.GetUOVersion().Split('.');
+        public static ClientVersions ClientVersion { get; private set; }
 
-                    if (split.Length < 3)
-                        return new Version(4, 0, 0, 0);
+        public static bool UseNewMobileIncoming => ClientVersion >= ClientVersions.CV_70331;
 
-                    int rev = 0;
+        public static bool UsePostHSChanges => ClientVersion >= ClientVersions.CV_7090;
 
-                    if (split.Length > 3)
-                        rev = Utility.ToInt32(split[3], 0);
+        public static bool UsePostSAChanges => ClientVersion >= ClientVersions.CV_7000;
 
-                    m_ClientVersion = new Version(
-                        Utility.ToInt32(split[0], 0),
-                        Utility.ToInt32(split[1], 0),
-                        Utility.ToInt32(split[2], 0),
-                        rev);
-
-                    if (m_ClientVersion.Major == 0) // sanity check if the client returns 0.0.0.0
-                        m_ClientVersion = new Version(4, 0, 0, 0);
-                }
-
-                return m_ClientVersion;
-            }
-        }
-
-        public static bool UseNewMobileIncoming
-        {
-            get
-            {
-                if (ClientVersion.Major > 7)
-                {
-                    return true;
-                }
-                else if (ClientVersion.Major == 7)
-                {
-                    if (ClientVersion.Minor > 0 || ClientVersion.Build >= 33)
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
-            }
-        }
-
-        public static bool UsePostHSChanges
-        {
-            get
-            {
-                if (ClientVersion.Major > 7)
-                {
-                    return true;
-                }
-                else if (ClientVersion.Major == 7)
-                {
-                    if (ClientVersion.Minor > 0)
-                    {
-                        return true;
-                    }
-                    else if (ClientVersion.Build >= 9)
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
-            }
-        }
-
-        public static bool UsePostSAChanges
-        {
-            get
-            {
-                if (ClientVersion.Major >= 7)
-                {
-                    return true;
-                }
-
-                return false;
-            }
-        }
-
-        public static bool UsePostKRPackets
-        {
-            get
-            {
-                if (ClientVersion.Major >= 7)
-                {
-                    return true;
-                }
-                else if (ClientVersion.Major >= 6)
-                {
-                    if (ClientVersion.Minor == 0)
-                    {
-                        if (ClientVersion.Build == 1)
-                        {
-                            if (ClientVersion.Revision >= 7)
-                                return true;
-                        }
-                        else if (ClientVersion.Build > 1)
-                        {
-                            return true;
-                        }
-                    }
-                    else
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
-            }
-        }
+        public static bool UsePostKRPackets => ClientVersion >= ClientVersions.CV_6017;
 
         public static string ExePath
         {
@@ -232,6 +157,7 @@ namespace Assistant
         [STAThread]
         public static void Main(string[] Args)
         {
+            ClientCommunication.Init(true);
             Application.EnableVisualStyles();
             m_Running = true;
             Thread.CurrentThread.Name = "Razor Main Thread";
@@ -257,9 +183,9 @@ namespace Assistant
             int attPID = -1;
             string dataDir;
 
-            ClientCommunication.ClientEncrypted = false;
+            ClientCommunication.Instance.ClientEncrypted = false;
 
-            ClientCommunication.ServerEncrypted = false;
+            ClientCommunication.Instance.ServerEncrypted = false;
 
             Config.SetAppSetting("PatchEncy", "1");
 
@@ -278,13 +204,13 @@ namespace Assistant
                 }
                 else if (arg == "--clientenc")
                 {
-                    ClientCommunication.ClientEncrypted = true;
+                    ClientCommunication.Instance.ClientEncrypted = true;
                     advCmdLine = true;
                     patch = false;
                 }
                 else if (arg == "--serverenc")
                 {
-                    ClientCommunication.ServerEncrypted = true;
+                    ClientCommunication.Instance.ServerEncrypted = true;
                     advCmdLine = true;
                 }
                 else if (arg == "--welcome")
@@ -332,8 +258,8 @@ namespace Assistant
 
             if (attPID > 0 && !advCmdLine)
             {
-                ClientCommunication.ServerEncrypted = false;
-                ClientCommunication.ClientEncrypted = false;
+                ClientCommunication.Instance.ServerEncrypted = false;
+                ClientCommunication.Instance.ClientEncrypted = false;
             }
 
             if (!Language.Load("ENU"))
@@ -415,7 +341,7 @@ namespace Assistant
 
             if (attPID == -1)
             {
-                ClientCommunication.SetConnectionInfo(IPAddress.None, -1);
+                ClientCommunication.Instance.SetConnectionInfo(IPAddress.None, -1);
 
                 ClientCommunication.Loader_Error result = ClientCommunication.Loader_Error.UNKNOWN_ERROR;
 
@@ -427,10 +353,10 @@ namespace Assistant
                     clientPath = Ultima.Files.GetFilePath("uotd.exe");
 
                 if (!advCmdLine)
-                    ClientCommunication.ClientEncrypted = patch;
+                    ClientCommunication.Instance.ClientEncrypted = patch;
 
                 if (clientPath != null && File.Exists(clientPath))
-                    result = ClientCommunication.LaunchClient(clientPath);
+                    result = ClientCommunication.Instance.LaunchClient(clientPath);
 
                 if (result != ClientCommunication.Loader_Error.SUCCESS)
                 {
@@ -461,7 +387,7 @@ namespace Assistant
                     return;
                 }
 
-                ClientCommunication.SetConnectionInfo(ip, port);
+                ClientCommunication.Instance.SetConnectionInfo(ip, port);
             }
             else
             {
@@ -469,7 +395,7 @@ namespace Assistant
                 bool result = false;
                 try
                 {
-                    result = ClientCommunication.Attach(attPID);
+                    result = ClientCommunication.Instance.Attach(attPID);
                 }
                 catch (Exception e)
                 {
@@ -486,7 +412,7 @@ namespace Assistant
                     return;
                 }
 
-                ClientCommunication.SetConnectionInfo(IPAddress.Any, 0);
+                ClientCommunication.Instance.SetConnectionInfo(IPAddress.Any, 0);
             }
 
             Ultima.Multis.PostHSFormat = UsePostHSChanges;
@@ -501,7 +427,7 @@ namespace Assistant
 
             m_Running = false;
 
-            ClientCommunication.Close();
+            ClientCommunication.Instance.Close();
             Counter.Save();
             Macros.MacroManager.Save();
             Config.Save();
@@ -513,7 +439,99 @@ namespace Assistant
             EnsureDirectory( path );
             return path;
         }*/
+        private static string _rootPath = null;
+        public static string RootPath => _rootPath ?? (_rootPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
+        
+    public static unsafe void Install(PluginHeader *plugin)
+        {            
+            
+            ClientCommunication.Init(false);
+            AppDomain.CurrentDomain.AssemblyResolve += (sender, e) =>
+            {
+                string[] fields = e.Name.Split(',');
+                string name = fields[0];
+                string culture = fields[2];
 
+                if (name.EndsWith(".resources") && !culture.EndsWith("neutral"))
+                {
+                    return null;
+                }
+                AssemblyName askedassembly = new AssemblyName(e.Name);
+
+                bool isdll = File.Exists(Path.Combine(RootPath, askedassembly.Name + ".dll"));
+
+                return Assembly.LoadFile(Path.Combine(RootPath, askedassembly.Name + (isdll ? ".dll" : ".exe")));
+
+            };
+
+            ClientVersion = (ClientVersions)plugin->ClientVersion;
+            PacketsTable.AdjustPacketSizeByVersion(Engine.ClientVersion);
+            if (!ClientCommunication.Instance.InstallCUOHooks(ref plugin))
+            {
+                System.Diagnostics.Process.GetCurrentProcess().Kill();
+                return;
+            }
+
+
+            string clientPath = Marshal.GetDelegateForFunctionPointer(plugin->GetUOFilePath,typeof(OnGetUOFilePath)).DynamicInvoke().ToString();
+
+            Thread t = new Thread(() =>
+            {
+                Debugger.Break();
+                m_Running = true;
+                Thread.CurrentThread.Name = "Razor Main Thread";
+
+#if !DEBUG
+			    AppDomain.CurrentDomain.UnhandledException +=
+                    new UnhandledExceptionEventHandler( CurrentDomain_UnhandledException );
+#endif
+
+                Ultima.Files.SetMulPath(clientPath);
+                Ultima.Multis.PostHSFormat = UsePostHSChanges;
+
+                if (!Language.Load("ENU"))
+                {
+                    MessageBox.Show(
+                        "Fatal Error: Unable to load required file Language/Razor_lang.enu\nRazor cannot continue.",
+                        "No Language Pack", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                    return;
+                }
+
+                string defLang = Config.GetAppSetting<string>("DefaultLanguage");
+                if (defLang != null && !Language.Load(defLang))
+                    MessageBox.Show(
+                        String.Format(
+                            "WARNING: Razor was unable to load the file Language/Razor_lang.{0}\nENU will be used instead.",
+                            defLang), "Language Load Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+
+
+                Language.LoadCliLoc();
+
+                Initialize(typeof(Assistant.Engine).Assembly); //Assembly.GetExecutingAssembly()
+
+                Config.LoadCharList();
+                if (!Config.LoadLastProfile())
+                    MessageBox.Show(
+                        "The selected profile could not be loaded, using default instead.", "Profile Load Error",
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
+
+                m_MainWnd = new MainForm();
+                Application.Run(m_MainWnd);
+
+                m_Running = false;
+
+                ClientCommunication.Instance.Close();
+                Counter.Save();
+                Macros.MacroManager.Save();
+                Config.Save();
+            });
+            t.SetApartmentState(ApartmentState.STA);
+            t.IsBackground = true;
+            t.Start();
+        }
         public static void EnsureDirectory(string dir)
         {
             if (!Directory.Exists(dir))
