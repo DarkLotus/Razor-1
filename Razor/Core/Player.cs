@@ -601,7 +601,7 @@ namespace Assistant
                 !IsGhost &&
                 ((int)(Direction & Direction.Mask)) % 2 == 0 &&
                 Config.GetBool("AutoOpenDoors") &&
-                ClientCommunication.Instance.AllowBit(FeatureBit.AutoOpenDoors))
+                Windows.AllowBit(FeatureBit.AutoOpenDoors))
             {
                 int x = Position.X, y = Position.Y, z = Position.Z;
 
@@ -724,7 +724,7 @@ namespace Assistant
                 if (m_CriminalTime != null)
                     m_CriminalTime.Stop();
                 m_CriminalStart = DateTime.MinValue;
-                ClientCommunication.Instance.RequestTitlebarUpdate();
+                Windows.RequestTitlebarUpdate();
             }
             else if ((cur == 3 || cur == 4) && (old != 3 && old != 4 && old != 0))
             {
@@ -741,7 +741,7 @@ namespace Assistant
                 if (m_CriminalTime == null)
                     m_CriminalTime = new CriminalTimer(this);
                 m_CriminalTime.Start();
-                ClientCommunication.Instance.RequestTitlebarUpdate();
+                Windows.RequestTitlebarUpdate();
             }
         }
 
@@ -755,7 +755,7 @@ namespace Assistant
 
             protected override void OnTick()
             {
-                ClientCommunication.Instance.RequestTitlebarUpdate();
+                Windows.RequestTitlebarUpdate();
             }
         }
 
@@ -989,7 +989,7 @@ namespace Assistant
             if (s != Serial.Zero)
             {
                 Item free = null, pack = World.Player.Backpack;
-                if (s.IsItem && pack != null && Config.GetBool("PotionEquip") && ClientCommunication.Instance.AllowBit(FeatureBit.AutoPotionEquip))
+                if (s.IsItem && pack != null && Config.GetBool("PotionEquip") && Windows.AllowBit(FeatureBit.AutoPotionEquip))
                 {
                     Item i = World.FindItem(s);
                     if (i != null && i.IsPotion && i.ItemID != 3853) // dont unequip for exploison potions

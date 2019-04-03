@@ -177,20 +177,10 @@ namespace Assistant
                 return !PacketHandler.OnClientPacket(p.PacketID, p, packet);
             }
         }
-        public override void RequestTitlebarUpdate()
-        {
-            //throw new NotImplementedException();
-        }
+       
 
-        public override IntPtr CaptureScreen(bool getBool, string timestamp)
-        {
-             throw new NotImplementedException();
-        }
-
-        public override bool AllowBit(uint autoOpenDoors)
-        {
-            return true;
-        }
+      
+       
 
         public override void SendToServer(Packet p)
         {

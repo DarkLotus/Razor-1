@@ -906,7 +906,7 @@ namespace Assistant
             m.Position = new Point3D(p.ReadUInt16(), p.ReadUInt16(), p.ReadInt16());
             m.Direction = (Direction)p.ReadByte();
 
-            ClientCommunication.Instance.RequestTitlebarUpdate();
+            Windows.RequestTitlebarUpdate();
             UOAssist.PostLogin((int)serial.Value);
             Engine.MainWindow.UpdateTitle(); // update player name & shard name
 
@@ -972,7 +972,7 @@ namespace Assistant
                     ClientCommunication.Instance.CalibratePosition((uint)m.Position.X, (uint)m.Position.Y, (uint)m.Position.Z, (byte)m.Direction);
 
                     if (wasPoisoned != m.Poisoned || (oldNoto != m.Notoriety && Config.GetBool("ShowNotoHue")))
-                        ClientCommunication.Instance.RequestTitlebarUpdate();
+                        Windows.RequestTitlebarUpdate();
 
                 }
             }
@@ -993,11 +993,11 @@ namespace Assistant
 
                 if (m == World.Player)
                 {
-                    ClientCommunication.Instance.RequestTitlebarUpdate();
+                    Windows.RequestTitlebarUpdate();
                     UOAssist.PostHitsUpdate();
                 }
 
-                if (ClientCommunication.Instance.AllowBit(FeatureBit.OverheadHealth) && Config.GetBool("ShowHealth"))
+                if (Windows.AllowBit(FeatureBit.OverheadHealth) && Config.GetBool("ShowHealth"))
                 {
                     int percent = (int)(m.Hits * 100 / (m.HitsMax == 0 ? (ushort)1 : m.HitsMax));
 
@@ -1031,11 +1031,11 @@ namespace Assistant
 
                 if (m == World.Player)
                 {
-                    ClientCommunication.Instance.RequestTitlebarUpdate();
+                    Windows.RequestTitlebarUpdate();
                     UOAssist.PostStamUpdate();
                 }
 
-                if (m != World.Player && ClientCommunication.Instance.AllowBit(FeatureBit.OverheadHealth) && Config.GetBool("ShowPartyStats"))
+                if (m != World.Player && Windows.AllowBit(FeatureBit.OverheadHealth) && Config.GetBool("ShowPartyStats"))
                 {
                     int stamPercent = (int)(m.Stam * 100 / (m.StamMax == 0 ? (ushort)1 : m.StamMax));
                     int manaPercent = (int)(m.Mana * 100 / (m.ManaMax == 0 ? (ushort)1 : m.ManaMax));
@@ -1070,11 +1070,11 @@ namespace Assistant
 
                 if (m == World.Player)
                 {
-                    ClientCommunication.Instance.RequestTitlebarUpdate();
+                    Windows.RequestTitlebarUpdate();
                     UOAssist.PostManaUpdate();
                 }
 
-                if (m != World.Player && ClientCommunication.Instance.AllowBit(FeatureBit.OverheadHealth) && Config.GetBool("ShowPartyStats"))
+                if (m != World.Player && Windows.AllowBit(FeatureBit.OverheadHealth) && Config.GetBool("ShowPartyStats"))
                 {
                     int stamPercent = (int)(m.Stam * 100 / (m.StamMax == 0 ? (ushort)1 : m.StamMax));
                     int manaPercent = (int)(m.Mana * 100 / (m.ManaMax == 0 ? (ushort)1 : m.ManaMax));
@@ -1114,7 +1114,7 @@ namespace Assistant
 
             if (m == World.Player)
             {
-                ClientCommunication.Instance.RequestTitlebarUpdate();
+                Windows.RequestTitlebarUpdate();
                 UOAssist.PostHitsUpdate();
                 UOAssist.PostStamUpdate();
                 UOAssist.PostManaUpdate();
@@ -1152,7 +1152,7 @@ namespace Assistant
                 m.Poisoned = (flag != 0);
 
                 if (m == World.Player && wasPoisoned != m.Poisoned)
-                    ClientCommunication.Instance.RequestTitlebarUpdate();
+                    Windows.RequestTitlebarUpdate();
             }
         }
 
@@ -1304,7 +1304,7 @@ namespace Assistant
                     }
                 }
 
-                ClientCommunication.Instance.RequestTitlebarUpdate();
+                Windows.RequestTitlebarUpdate();
 
                 UOAssist.PostHitsUpdate();
                 UOAssist.PostStamUpdate();
@@ -1359,7 +1359,7 @@ namespace Assistant
                 }
 
                 if (wasPoisoned != m.Poisoned)
-                    ClientCommunication.Instance.RequestTitlebarUpdate();
+                    Windows.RequestTitlebarUpdate();
             }
 
             Item.UpdateContainers();
@@ -1431,7 +1431,7 @@ namespace Assistant
                 }
 
                 if (wasPoisoned != m.Poisoned || (oldNoto != m.Notoriety && Config.GetBool("ShowNotoHue")))
-                    ClientCommunication.Instance.RequestTitlebarUpdate();
+                    Windows.RequestTitlebarUpdate();
             }
 
             while (true)
@@ -2811,7 +2811,7 @@ namespace Assistant
                         break;
                 }
 
-                ClientCommunication.Instance.RequestTitlebarUpdate();
+                Windows.RequestTitlebarUpdate();
             }
 
             if (World.Player != null && World.Player.BuffsDebuffs.Count > 0)

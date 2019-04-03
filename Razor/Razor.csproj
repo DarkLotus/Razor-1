@@ -372,6 +372,9 @@
     <Compile Include="Core\ZLib.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Content Include="WinUtil.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <EmbeddedResource Include="Boat\BoatWindow.resx">
       <DependentUpon>BoatWindow.cs</DependentUpon>
       <SubType>Designer</SubType>
@@ -443,6 +446,9 @@
     <Content Include="Boat\Images\southeast.png" />
     <Content Include="Boat\Images\southwest.png" />
     <Content Include="Boat\Images\west.png" />
+    <Content Include="cuoapi.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="UI\Lock.ico" />
     <Content Include="UI\UOPS.ico" />
   </ItemGroup>

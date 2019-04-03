@@ -4395,7 +4395,7 @@ namespace Assistant
 
                     for (uint i = 0; i < FeatureBit.MaxBit; i++)
                     {
-                        if (!ClientCommunication.Instance.AllowBit(i))
+                        if (!Windows.AllowBit(i))
                         {
                             allAllowed = false;
 
@@ -4763,14 +4763,14 @@ namespace Assistant
         {
             titleStr.Enabled = showInBar.Checked;
             Config.SetProperty("TitleBarDisplay", showInBar.Checked);
-            ClientCommunication.Instance.RequestTitlebarUpdate();
+            Windows.RequestTitlebarUpdate();
         }
 
         private void titleStr_TextChanged(object sender, System.EventArgs e)
         {
             Config.SetProperty("TitleBarText", titleStr.Text.TrimEnd());
             if (Config.GetBool("TitleBarDisplay"))
-                ClientCommunication.Instance.RequestTitlebarUpdate();
+                Windows.RequestTitlebarUpdate();
         }
 
         private void counters_ItemCheck(object sender, System.Windows.Forms.ItemCheckEventArgs e)
@@ -4778,7 +4778,7 @@ namespace Assistant
             if (e.Index >= 0 && e.Index < Counter.List.Count && !Counter.SupressChecks)
             {
                 ((Counter) (counters.Items[e.Index].Tag)).SetEnabled(e.NewValue == CheckState.Checked);
-                ClientCommunication.Instance.RequestTitlebarUpdate();
+                Windows.RequestTitlebarUpdate();
                 counters.Sort();
                 //counters.Refresh();
             }
@@ -4839,7 +4839,7 @@ namespace Assistant
                         Config.SetProfileFor(World.Player);
                 }
 
-                ClientCommunication.Instance.RequestTitlebarUpdate();
+                Windows.RequestTitlebarUpdate();
             }
             else
             {
@@ -4952,7 +4952,7 @@ namespace Assistant
                                     Config.SetProfileFor(World.Player);
                             }
 
-                            ClientCommunication.Instance.RequestTitlebarUpdate();
+                            Windows.RequestTitlebarUpdate();
                         }
 
                         m_ProfileConfirmLoad = true;
@@ -5285,12 +5285,12 @@ namespace Assistant
             chkPass.Checked = hk.SendToUO;
 
             if ((hk.LocName >= (int) LocString.DrinkHeal && hk.LocName <= (int) LocString.DrinkAg &&
-                 !ClientCommunication.Instance.AllowBit(FeatureBit.PotionHotkeys)) ||
+                 !Windows.AllowBit(FeatureBit.PotionHotkeys)) ||
                 (hk.LocName >= (int) LocString.TargCloseRed && hk.LocName <= (int) LocString.TargCloseCriminal &&
-                 !ClientCommunication.Instance.AllowBit(FeatureBit.ClosestTargets)) ||
+                 !Windows.AllowBit(FeatureBit.ClosestTargets)) ||
                 (((hk.LocName >= (int) LocString.TargRandRed && hk.LocName <= (int) LocString.TargRandNFriend) ||
                   (hk.LocName >= (int) LocString.TargRandEnemyHuman && hk.LocName <= (int) LocString.TargRandCriminal)
-                 ) && !ClientCommunication.Instance.AllowBit(FeatureBit.RandomTargets)))
+                 ) && !Windows.AllowBit(FeatureBit.RandomTargets)))
             {
                 LockControl(chkCtrl);
                 LockControl(chkAlt);
@@ -5771,7 +5771,7 @@ namespace Assistant
         {
             Config.SetProperty("ShowNotoHue", showNotoHue.Checked);
             if (showNotoHue.Checked)
-                ClientCommunication.Instance.RequestTitlebarUpdate();
+                Windows.RequestTitlebarUpdate();
         }
 
         private void recount_Click(object sender, System.EventArgs e)
@@ -7378,13 +7378,13 @@ namespace Assistant
         private void titlebarImages_CheckedChanged(object sender, System.EventArgs e)
         {
             Config.SetProperty("TitlebarImages", titlebarImages.Checked);
-            ClientCommunication.Instance.RequestTitlebarUpdate();
+            Windows.RequestTitlebarUpdate();
         }
 
         private void highlightSpellReags_CheckedChanged(object sender, System.EventArgs e)
         {
             Config.SetProperty("HighlightReagents", highlightSpellReags.Checked);
-            ClientCommunication.Instance.RequestTitlebarUpdate();
+            Windows.RequestTitlebarUpdate();
         }
 
         private void actionStatusMsg_CheckedChanged(object sender, System.EventArgs e)
@@ -7796,28 +7796,28 @@ namespace Assistant
 
             m_LockBoxes.Clear();
 
-            if (!ClientCommunication.Instance.AllowBit(FeatureBit.SmartLT))
+            if (!Windows.AllowBit(FeatureBit.SmartLT))
                 LockControl(this.smartLT);
 
-            if (!ClientCommunication.Instance.AllowBit(FeatureBit.RangeCheckLT))
+            if (!Windows.AllowBit(FeatureBit.RangeCheckLT))
                 LockControl(this.rangeCheckLT);
 
-            if (!ClientCommunication.Instance.AllowBit(FeatureBit.AutoOpenDoors))
+            if (!Windows.AllowBit(FeatureBit.AutoOpenDoors))
                 LockControl(this.autoOpenDoors);
 
-            if (!ClientCommunication.Instance.AllowBit(FeatureBit.UnequipBeforeCast))
+            if (!Windows.AllowBit(FeatureBit.UnequipBeforeCast))
                 LockControl(this.spellUnequip);
 
-            if (!ClientCommunication.Instance.AllowBit(FeatureBit.AutoPotionEquip))
+            if (!Windows.AllowBit(FeatureBit.AutoPotionEquip))
                 LockControl(this.potionEquip);
 
-            if (!ClientCommunication.Instance.AllowBit(FeatureBit.BlockHealPoisoned))
+            if (!Windows.AllowBit(FeatureBit.BlockHealPoisoned))
                 LockControl(this.blockHealPoison);
 
-            if (!ClientCommunication.Instance.AllowBit(FeatureBit.LoopingMacros))
+            if (!Windows.AllowBit(FeatureBit.LoopingMacros))
                 LockControl(this.loopMacro);
 
-            if (!ClientCommunication.Instance.AllowBit(FeatureBit.OverheadHealth))
+            if (!Windows.AllowBit(FeatureBit.OverheadHealth))
             {
                 LockControl(this.showHealthOH);
                 LockControl(this.healthFmt);
@@ -8181,7 +8181,7 @@ namespace Assistant
 
         private void lightLevelBar_Scroll(object sender, EventArgs e)
         {
-            if (ClientCommunication.Instance.AllowBit(FeatureBit.LightFilter) && World.Player != null)
+            if (Windows.AllowBit(FeatureBit.LightFilter) && World.Player != null)
             {
                 byte selectedLightLevel = Convert.ToByte(lightLevelBar.Maximum - lightLevelBar.Value);
 

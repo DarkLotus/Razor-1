@@ -245,7 +245,7 @@ namespace Assistant
             }
             m_SubList.EndUpdate();
 
-            if (!ClientCommunication.Instance.AllowBit(FeatureBit.UseOnceAgent) && Engine.MainWindow != null)
+            if (!Windows.AllowBit(FeatureBit.UseOnceAgent) && Engine.MainWindow != null)
             {
                 for (int i = 0; i < buttons.Length; i++)
                 {
@@ -445,7 +445,7 @@ namespace Assistant
 
         public void OnHotKey()
         {
-            if (World.Player == null || !ClientCommunication.Instance.AllowBit(FeatureBit.UseOnceAgent))
+            if (World.Player == null || !Windows.AllowBit(FeatureBit.UseOnceAgent))
             {
                 return;
             }
@@ -552,7 +552,7 @@ namespace Assistant
 
         private void OnVendorSell(PacketReader pvSrc, PacketHandlerEventArgs args)
         {
-            if (!m_Enabled || !ClientCommunication.Instance.AllowBit(FeatureBit.SellAgent) || (m_Items.Count == 0 && m_HotBag == Serial.Zero))
+            if (!m_Enabled || !Windows.AllowBit(FeatureBit.SellAgent) || (m_Items.Count == 0 && m_HotBag == Serial.Zero))
             {
                 return;
             }
@@ -653,7 +653,7 @@ namespace Assistant
 
             m_SubList.EndUpdate();
 
-            if (!ClientCommunication.Instance.AllowBit(FeatureBit.SellAgent) && Engine.MainWindow != null)
+            if (!Windows.AllowBit(FeatureBit.SellAgent) && Engine.MainWindow != null)
             {
                 for (int i = 0; i < buttons.Length; i++)
                 {
@@ -1872,7 +1872,7 @@ namespace Assistant
             Serial serial = p.ReadUInt32();
             ushort gump = p.ReadUInt16();
 
-            if (gump != 0x30 || !serial.IsMobile || !ClientCommunication.Instance.AllowBit(FeatureBit.BuyAgent) || World.Player == null)
+            if (gump != 0x30 || !serial.IsMobile || !Windows.AllowBit(FeatureBit.BuyAgent) || World.Player == null)
             {
                 return;
             }
@@ -2079,7 +2079,7 @@ namespace Assistant
 
             m_SubList.EndUpdate();
 
-            if (!ClientCommunication.Instance.AllowBit(FeatureBit.BuyAgent) && Engine.MainWindow != null)
+            if (!Windows.AllowBit(FeatureBit.BuyAgent) && Engine.MainWindow != null)
             {
                 for (int i = 0; i < buttons.Length; i++)
                 {
@@ -2311,7 +2311,7 @@ namespace Assistant
 
             subList.EndUpdate();
 
-            if (!ClientCommunication.Instance.AllowBit(FeatureBit.RestockAgent) && Engine.MainWindow != null)
+            if (!Windows.AllowBit(FeatureBit.RestockAgent) && Engine.MainWindow != null)
             {
                 for (int i = 0; i < buttons.Length; i++)
                 {
@@ -2451,7 +2451,7 @@ namespace Assistant
 
         private void OnHotKey()
         {
-            if (ClientCommunication.Instance.AllowBit(FeatureBit.RestockAgent))
+            if (Windows.AllowBit(FeatureBit.RestockAgent))
             {
                 World.Player.SendMessage(MsgLevel.Force, LocString.RestockTarget);
                 Targeting.OneTimeTarget(new Targeting.TargetResponseCallback(OnRestockTarget));

@@ -20,7 +20,7 @@ namespace Assistant.Filters
 
 		public override void OnFilter( PacketReader p, PacketHandlerEventArgs args )
 		{
-			if ( ClientCommunication.Instance.AllowBit( FeatureBit.WeatherFilter ) )
+			if ( Windows.AllowBit( FeatureBit.WeatherFilter ) )
 				args.Block = true;
 		}
 	}

@@ -9,13 +9,6 @@ namespace Assistant
     public abstract class ClientCommunication
     {
         public static ClientCommunication Instance;
-        public abstract void RequestTitlebarUpdate();
-
-        public abstract IntPtr CaptureScreen(bool getBool, string timestamp);
-
-
-
-        public abstract bool AllowBit(uint autoOpenDoors);
 
         public abstract void SendToServer(Packet packet);
 
