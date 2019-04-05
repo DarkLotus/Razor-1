@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Collections;
 using System.Threading;
+using System.Diagnostics;
 
 namespace Assistant
 {
@@ -249,7 +250,7 @@ namespace Assistant
 			if ( m_Ctrl == null )
 				return;
 
-			m_Ctrl.Stop();
+			//m_Ctrl.Stop();
 
 			if ( !m_Heap.IsEmpty )
 			{
