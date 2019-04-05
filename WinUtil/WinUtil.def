@@ -1,0 +1,12 @@
+LIBRARY	WinUtil
+
+EXPORTS
+	CaptureScreen
+	BringToFront
+	AllowBit
+	HandleNegotiate
+	InitTitleBar
+	DrawTitleBar
+	FreeTitleBar
+	CreateUOAWindow
+	DestroyUOAWindow
