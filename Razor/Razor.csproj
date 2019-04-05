@@ -67,6 +67,7 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
     <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
+    <Prefer32bit>false</Prefer32bit>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
     <OutputPath>..\bin\Win32\Release\</OutputPath>
@@ -372,9 +373,6 @@
     <Compile Include="Core\ZLib.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Content Include="WinUtil.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <EmbeddedResource Include="Boat\BoatWindow.resx">
       <DependentUpon>BoatWindow.cs</DependentUpon>
       <SubType>Designer</SubType>
