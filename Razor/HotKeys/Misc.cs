@@ -147,7 +147,7 @@ namespace Assistant.HotKeys
         {
             if (PacketHandlers.PartyLeader != Serial.Zero)
             {
-                ClientCommunication.SendToServer(new AcceptParty(PacketHandlers.PartyLeader));
+                ClientCommunication.Instance.SendToServer(new AcceptParty(PacketHandlers.PartyLeader));
                 PacketHandlers.PartyLeader = Serial.Zero;
             }
         }
@@ -156,7 +156,7 @@ namespace Assistant.HotKeys
         {
             if (PacketHandlers.PartyLeader != Serial.Zero)
             {
-                ClientCommunication.SendToServer(new DeclineParty(PacketHandlers.PartyLeader));
+                ClientCommunication.Instance.SendToServer(new DeclineParty(PacketHandlers.PartyLeader));
                 PacketHandlers.PartyLeader = Serial.Zero;
             }
         }
@@ -176,7 +176,7 @@ namespace Assistant.HotKeys
             foreach (Mobile m in World.MobilesInRange())
             {
                 if (m != World.Player)
-                    ClientCommunication.SendToServer(new SingleClick(m));
+                    ClientCommunication.Instance.SendToServer(new SingleClick(m));
 
                 if (textFlags)
                     Targeting.CheckTextFlags(m);
@@ -185,7 +185,7 @@ namespace Assistant.HotKeys
             foreach (Item i in World.Items.Values)
             {
                 if (i.IsCorpse)
-                    ClientCommunication.SendToServer(new SingleClick(i));
+                    ClientCommunication.Instance.SendToServer(new SingleClick(i));
             }
         }
 
@@ -194,7 +194,7 @@ namespace Assistant.HotKeys
             foreach (Item i in World.Items.Values)
             {
                 if (i.IsCorpse)
-                    ClientCommunication.SendToServer(new SingleClick(i));
+                    ClientCommunication.Instance.SendToServer(new SingleClick(i));
             }
         }
 
@@ -205,7 +205,7 @@ namespace Assistant.HotKeys
             foreach (Mobile m in World.MobilesInRange())
             {
                 if (m != World.Player)
-                    ClientCommunication.SendToServer(new SingleClick(m));
+                    ClientCommunication.Instance.SendToServer(new SingleClick(m));
 
                 if (textFlags)
                     Targeting.CheckTextFlags(m);
@@ -215,7 +215,7 @@ namespace Assistant.HotKeys
         private static void LastSkill()
         {
             if (World.Player != null && World.Player.LastSkill != -1)
-                ClientCommunication.SendToServer(new UseSkill(World.Player.LastSkill));
+                ClientCommunication.Instance.SendToServer(new UseSkill(World.Player.LastSkill));
         }
 
         private static void LastObj()
@@ -242,7 +242,7 @@ namespace Assistant.HotKeys
             {
                 m_LastSync = DateTime.UtcNow;
 
-                ClientCommunication.SendToServer(new ResyncReq());
+                ClientCommunication.Instance.SendToServer(new ResyncReq());
             }
         }
 
@@ -319,7 +319,7 @@ namespace Assistant.HotKeys
 
             ushort id = (ushort) state;
             if (id == 3852 && World.Player.Poisoned && Config.GetBool("BlockHealPoison") &&
-                ClientCommunication.AllowBit(FeatureBit.BlockHealPoisoned))
+                ClientCommunication.Instance.AllowBit(FeatureBit.BlockHealPoisoned))
             {
                 World.Player.SendMessage(MsgLevel.Force, LocString.HealPoisonBlocked);
                 return;
@@ -341,7 +341,7 @@ namespace Assistant.HotKeys
 
         private static bool UseItem(Item cont, ushort find)
         {
-            if (!ClientCommunication.AllowBit(FeatureBit.PotionHotkeys))
+            if (!ClientCommunication.Instance.AllowBit(FeatureBit.PotionHotkeys))
                 return false;
 
             for (int i = 0; i < cont.Contains.Count; i++)

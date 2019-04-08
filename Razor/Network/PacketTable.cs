@@ -264,6 +264,11 @@ namespace Assistant
                 -1 // ff
         };
 
+        public static short GetPacketLength( int id )
+        {
+            return _packetsTable[id];
+        }
+
         public static unsafe short GetPacketLength(byte *buff, int length)
         {
             if (length <= 0)

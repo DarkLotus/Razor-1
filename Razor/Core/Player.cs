@@ -601,7 +601,7 @@ namespace Assistant
                 !IsGhost &&
                 ((int)(Direction & Direction.Mask)) % 2 == 0 &&
                 Config.GetBool("AutoOpenDoors") &&
-                ClientCommunication.AllowBit(FeatureBit.AutoOpenDoors))
+                ClientCommunication.Instance.AllowBit(FeatureBit.AutoOpenDoors))
             {
                 int x = Position.X, y = Position.Y, z = Position.Z;
 
@@ -612,7 +612,7 @@ namespace Assistant
                 {
                     if (i.IsDoor && i.Position.X == x && i.Position.Y == y && i.Position.Z - 15 <= z && i.Position.Z + 15 >= z)
                     {
-                        ClientCommunication.SendToServer(new OpenDoorMacro());
+                        ClientCommunication.Instance.SendToServer(new OpenDoorMacro());
                         break;
                     }
                 }
@@ -816,7 +816,7 @@ namespace Assistant
                         break;
                 }
 
-                ClientCommunication.SendToClient(new UnicodeMessage(0xFFFFFFFF, -1, MessageType.Regular, hue, 3, Language.CliLocName, "System", text));
+                ClientCommunication.Instance.SendToClient(new UnicodeMessage(0xFFFFFFFF, -1, MessageType.Regular, hue, 3, Language.CliLocName, "System", text));
 
                 PacketHandlers.SysMessages.Add(text);
 
@@ -831,11 +831,11 @@ namespace Assistant
 
             if (keywords.Count == 1 && (int) keywords[0] == 0)
             {
-                ClientCommunication.SendToServer(new ClientUniEncodedCommandMessage(MessageType.Regular, hue, 3, Language.CliLocName, keywords, msg));
+                ClientCommunication.Instance.SendToServer(new ClientUniEncodedCommandMessage(MessageType.Regular, hue, 3, Language.CliLocName, keywords, msg));
             }
             else
             {
-                ClientCommunication.SendToServer(new ClientUniEncodedCommandMessage(MessageType.Encoded, hue, 3, Language.CliLocName, keywords, msg));
+                ClientCommunication.Instance.SendToServer(new ClientUniEncodedCommandMessage(MessageType.Encoded, hue, 3, Language.CliLocName, keywords, msg));
             }
         }
 
@@ -861,13 +861,13 @@ namespace Assistant
 
         public void CancelPrompt()
         {
-            ClientCommunication.SendToServer(new PromptResponse(World.Player.PromptSenderSerial, World.Player.PromptID, 0, Language.CliLocName, string.Empty));
+            ClientCommunication.Instance.SendToServer(new PromptResponse(World.Player.PromptSenderSerial, World.Player.PromptID, 0, Language.CliLocName, string.Empty));
             World.Player.HasPrompt = false;
         }
 
         public void ResponsePrompt(string text)
         {
-            ClientCommunication.SendToServer(new PromptResponse(World.Player.PromptSenderSerial, World.Player.PromptID, 1, Language.CliLocName, text));
+            ClientCommunication.Instance.SendToServer(new PromptResponse(World.Player.PromptSenderSerial, World.Player.PromptID, 1, Language.CliLocName, text));
 
             PromptInputText = text;
             World.Player.HasPrompt = false;
@@ -930,7 +930,7 @@ namespace Assistant
 
             protected override void OnTick()
             {
-                ClientCommunication.ForceSendToClient(new SeasonChange(World.Player.Season, true));
+                ClientCommunication.Instance.ForceSendToClient(new SeasonChange(World.Player.Season, true));
                 m_SeasonTimer.Stop();
             }
         }
@@ -989,7 +989,7 @@ namespace Assistant
             if (s != Serial.Zero)
             {
                 Item free = null, pack = World.Player.Backpack;
-                if (s.IsItem && pack != null && Config.GetBool("PotionEquip") && ClientCommunication.AllowBit(FeatureBit.AutoPotionEquip))
+                if (s.IsItem && pack != null && Config.GetBool("PotionEquip") && ClientCommunication.Instance.AllowBit(FeatureBit.AutoPotionEquip))
                 {
                     Item i = World.FindItem(s);
                     if (i != null && i.IsPotion && i.ItemID != 3853) // dont unequip for exploison potions

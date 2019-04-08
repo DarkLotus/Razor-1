@@ -62,6 +62,12 @@ namespace Assistant
         [DllImport( "user32.dll" )]
         internal static extern IntPtr SendMessage( IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam );
 
+        [DllImport( "User32.dll" )]
+        private static extern IntPtr GetSystemMenu( IntPtr wnd, bool reset );
+
+        [DllImport( "User32.dll" )]
+        private static extern IntPtr EnableMenuItem( IntPtr menu, uint item, uint options );
+
         public static string GetWindowsUserName()
         {
             int len = 1024;

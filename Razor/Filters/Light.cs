@@ -20,7 +20,7 @@ namespace Assistant.Filters
 
 		public override void OnFilter( PacketReader p, PacketHandlerEventArgs args )
 		{
-			if ( ClientCommunication.AllowBit( FeatureBit.LightFilter ) )
+			if ( ClientCommunication.Instance.AllowBit( FeatureBit.LightFilter ) )
 			{
 				args.Block = true;
 				if ( World.Player != null )
@@ -35,13 +35,13 @@ namespace Assistant.Filters
 		{
 			base.OnEnable ();
 
-			if ( ClientCommunication.AllowBit( FeatureBit.LightFilter ) && World.Player != null )
+			if ( ClientCommunication.Instance.AllowBit( FeatureBit.LightFilter ) && World.Player != null )
 			{
 				World.Player.LocalLightLevel = 0;
 				World.Player.GlobalLightLevel = 0;
 
-				ClientCommunication.SendToClient( new GlobalLightLevel( 0 ) );
-				ClientCommunication.SendToClient( new PersonalLightLevel( World.Player ) );
+				ClientCommunication.Instance.SendToClient( new GlobalLightLevel( 0 ) );
+				ClientCommunication.Instance.SendToClient( new PersonalLightLevel( World.Player ) );
 			}
 		}
 
@@ -49,13 +49,13 @@ namespace Assistant.Filters
 	    {
 	        base.OnDisable();
 
-	        if (ClientCommunication.AllowBit(FeatureBit.LightFilter) && World.Player != null)
+	        if (ClientCommunication.Instance.AllowBit(FeatureBit.LightFilter) && World.Player != null)
 	        {
 	            World.Player.LocalLightLevel = 6;
 	            World.Player.GlobalLightLevel = 2;
 
-	            ClientCommunication.SendToClient(new GlobalLightLevel(26));
-	            ClientCommunication.SendToClient(new PersonalLightLevel(World.Player));
+	            ClientCommunication.Instance.SendToClient(new GlobalLightLevel(26));
+	            ClientCommunication.Instance.SendToClient(new PersonalLightLevel(World.Player));
 	        }
 	    }
 

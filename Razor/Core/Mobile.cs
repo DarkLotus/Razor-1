@@ -550,11 +550,11 @@ namespace Assistant
         {
             if (ascii)
             {
-                ClientCommunication.SendToClient(new AsciiMessage(Serial, m_Body, MessageType.Regular, hue, 3, from, text));
+                ClientCommunication.Instance.SendToClient(new AsciiMessage(Serial, m_Body, MessageType.Regular, hue, 3, from, text));
             }
             else
             {
-                ClientCommunication.SendToClient(new UnicodeMessage(Serial, m_Body, MessageType.Regular, hue, 3, Language.CliLocName, from, text));
+                ClientCommunication.Instance.SendToClient(new UnicodeMessage(Serial, m_Body, MessageType.Regular, hue, 3, Language.CliLocName, from, text));
             }
         }
 

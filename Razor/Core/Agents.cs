@@ -209,7 +209,7 @@ namespace Assistant
 
                 if (item.Serial == serial)
                 {
-                    ClientCommunication.SendToClient(new UnicodeMessage(item.Serial, item.ItemID, Assistant.MessageType.Label, 0x3B2, 3, Language.CliLocName, "", Language.Format(LocString.UseOnceHBA1, i + 1)));
+                    ClientCommunication.Instance.SendToClient(new UnicodeMessage(item.Serial, item.ItemID, Assistant.MessageType.Label, 0x3B2, 3, Language.CliLocName, "", Language.Format(LocString.UseOnceHBA1, i + 1)));
                     break;
                 }
             }
@@ -245,7 +245,7 @@ namespace Assistant
             }
             m_SubList.EndUpdate();
 
-            if (!ClientCommunication.AllowBit(FeatureBit.UseOnceAgent) && Engine.MainWindow != null)
+            if (!ClientCommunication.Instance.AllowBit(FeatureBit.UseOnceAgent) && Engine.MainWindow != null)
             {
                 for (int i = 0; i < buttons.Length; i++)
                 {
@@ -445,7 +445,7 @@ namespace Assistant
 
         public void OnHotKey()
         {
-            if (World.Player == null || !ClientCommunication.AllowBit(FeatureBit.UseOnceAgent))
+            if (World.Player == null || !ClientCommunication.Instance.AllowBit(FeatureBit.UseOnceAgent))
             {
                 return;
             }
@@ -541,7 +541,7 @@ namespace Assistant
                     gfx = c.ItemID.Value;
                 }
 
-                ClientCommunication.SendToClient(new UnicodeMessage(m_HotBag, gfx, Assistant.MessageType.Label, 0x3B2, 3, Language.CliLocName, "", Language.GetString(LocString.SellHB)));
+                ClientCommunication.Instance.SendToClient(new UnicodeMessage(m_HotBag, gfx, Assistant.MessageType.Label, 0x3B2, 3, Language.CliLocName, "", Language.GetString(LocString.SellHB)));
             }
         }
 
@@ -552,7 +552,7 @@ namespace Assistant
 
         private void OnVendorSell(PacketReader pvSrc, PacketHandlerEventArgs args)
         {
-            if (!m_Enabled || !ClientCommunication.AllowBit(FeatureBit.SellAgent) || (m_Items.Count == 0 && m_HotBag == Serial.Zero))
+            if (!m_Enabled || !ClientCommunication.Instance.AllowBit(FeatureBit.SellAgent) || (m_Items.Count == 0 && m_HotBag == Serial.Zero))
             {
                 return;
             }
@@ -616,7 +616,7 @@ namespace Assistant
 
             if (list.Count > 0)
             {
-                ClientCommunication.SendToServer(new VendorSellResponse(vendor, list));
+                ClientCommunication.Instance.SendToServer(new VendorSellResponse(vendor, list));
                 World.Player.SendMessage(MsgLevel.Force, LocString.SellTotals, sold, total);
                 args.Block = true;
             }
@@ -653,7 +653,7 @@ namespace Assistant
 
             m_SubList.EndUpdate();
 
-            if (!ClientCommunication.AllowBit(FeatureBit.SellAgent) && Engine.MainWindow != null)
+            if (!ClientCommunication.Instance.AllowBit(FeatureBit.SellAgent) && Engine.MainWindow != null)
             {
                 for (int i = 0; i < buttons.Length; i++)
                 {
@@ -907,7 +907,7 @@ namespace Assistant
                     gfx = c.ItemID.Value;
                 }
 
-                ClientCommunication.SendToClient(new UnicodeMessage(m_Cont, gfx, Assistant.MessageType.Label, 0x3B2, 3, Language.CliLocName, "", Language.Format(LocString.OrganizerHBA1, m_Num)));
+                ClientCommunication.Instance.SendToClient(new UnicodeMessage(m_Cont, gfx, Assistant.MessageType.Label, 0x3B2, 3, Language.CliLocName, "", Language.Format(LocString.OrganizerHBA1, m_Num)));
             }
         }
 
@@ -1337,7 +1337,7 @@ namespace Assistant
                 Item item = World.FindItem(serial);
                 if (item != null)
                 {
-                    ClientCommunication.SendToClient(new ContainerItem(item));
+                    ClientCommunication.Instance.SendToClient(new ContainerItem(item));
                     m_SubList.Items.Add(item.ToString());
                 }
                 else
@@ -1379,7 +1379,7 @@ namespace Assistant
                         Item item = World.FindItem(serial);
                         if (item != null)
                         {
-                            ClientCommunication.SendToClient(new ContainerItem(item));
+                            ClientCommunication.Instance.SendToClient(new ContainerItem(item));
                         }
 
                         return;
@@ -1514,7 +1514,7 @@ namespace Assistant
                     gfx = c.ItemID.Value;
                 }
 
-                ClientCommunication.SendToClient(new UnicodeMessage(m_Bag, gfx, Assistant.MessageType.Label, 0x3B2, 3, Language.CliLocName, "", Language.GetString(LocString.ScavengerHB)));
+                ClientCommunication.Instance.SendToClient(new UnicodeMessage(m_Bag, gfx, Assistant.MessageType.Label, 0x3B2, 3, Language.CliLocName, "", Language.GetString(LocString.ScavengerHB)));
             }
         }
 
@@ -1870,7 +1870,7 @@ namespace Assistant
             Serial serial = p.ReadUInt32();
             ushort gump = p.ReadUInt16();
 
-            if (gump != 0x30 || !serial.IsMobile || !ClientCommunication.AllowBit(FeatureBit.BuyAgent) || World.Player == null)
+            if (gump != 0x30 || !serial.IsMobile || !ClientCommunication.Instance.AllowBit(FeatureBit.BuyAgent) || World.Player == null)
             {
                 return;
             }
@@ -2002,7 +2002,7 @@ namespace Assistant
             if (buyList.Count > 0)
             {
                 args.Block = true;
-                ClientCommunication.SendToServer(new VendorBuyResponse(serial, buyList));
+                ClientCommunication.Instance.SendToServer(new VendorBuyResponse(serial, buyList));
                 World.Player.SendMessage(MsgLevel.Force, LocString.BuyTotals, total, cost);
             }
             if (lowGoldWarn)
@@ -2077,7 +2077,7 @@ namespace Assistant
 
             m_SubList.EndUpdate();
 
-            if (!ClientCommunication.AllowBit(FeatureBit.BuyAgent) && Engine.MainWindow != null)
+            if (!ClientCommunication.Instance.AllowBit(FeatureBit.BuyAgent) && Engine.MainWindow != null)
             {
                 for (int i = 0; i < buttons.Length; i++)
                 {
@@ -2270,7 +2270,7 @@ namespace Assistant
                     gfx = c.ItemID.Value;
                 }
 
-                ClientCommunication.SendToClient(new UnicodeMessage(m_HotBag, gfx, Assistant.MessageType.Label, 0x3B2, 3, Language.CliLocName, "", Language.Format(LocString.RestockHBA1, m_Num)));
+                ClientCommunication.Instance.SendToClient(new UnicodeMessage(m_HotBag, gfx, Assistant.MessageType.Label, 0x3B2, 3, Language.CliLocName, "", Language.Format(LocString.RestockHBA1, m_Num)));
             }
         }
 
@@ -2307,7 +2307,7 @@ namespace Assistant
 
             subList.EndUpdate();
 
-            if (!ClientCommunication.AllowBit(FeatureBit.RestockAgent) && Engine.MainWindow != null)
+            if (!ClientCommunication.Instance.AllowBit(FeatureBit.RestockAgent) && Engine.MainWindow != null)
             {
                 for (int i = 0; i < buttons.Length; i++)
                 {
@@ -2447,7 +2447,7 @@ namespace Assistant
 
         private void OnHotKey()
         {
-            if (ClientCommunication.AllowBit(FeatureBit.RestockAgent))
+            if (ClientCommunication.Instance.AllowBit(FeatureBit.RestockAgent))
             {
                 World.Player.SendMessage(MsgLevel.Force, LocString.RestockTarget);
                 Targeting.OneTimeTarget(new Targeting.TargetResponseCallback(OnRestockTarget));

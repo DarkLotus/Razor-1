@@ -7,6 +7,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Security.Principal;
+using CUO_API;
+using System.Runtime.InteropServices;
 
 namespace Assistant
 {
@@ -16,7 +18,7 @@ namespace Assistant
         {
             if (e.IsTerminating)
             {
-                ClientCommunication.Close();
+                ClientCommunication.Instance.Close();
                 m_Running = false;
 
                 new MessageDialog("Unhandled Exception", !e.IsTerminating, e.ExceptionObject.ToString()).ShowDialog(
@@ -399,7 +401,7 @@ namespace Assistant
 
             if (attPID == -1)
             {
-                ClientCommunication.SetConnectionInfo(IPAddress.None, -1);
+                OSIClientCommunication.SetConnectionInfo(IPAddress.None, -1);
 
                 ClientCommunication.Loader_Error result = ClientCommunication.Loader_Error.UNKNOWN_ERROR;
 
@@ -414,7 +416,7 @@ namespace Assistant
                     ClientCommunication.ClientEncrypted = patch;
 
                 if (clientPath != null && File.Exists(clientPath))
-                    result = ClientCommunication.LaunchClient(clientPath);
+                    result = OSIClientCommunication.LaunchClient(clientPath);
 
                 if (result != ClientCommunication.Loader_Error.SUCCESS)
                 {
@@ -445,7 +447,7 @@ namespace Assistant
                     return;
                 }
 
-                ClientCommunication.SetConnectionInfo(ip, port);
+                OSIClientCommunication.SetConnectionInfo(ip, port);
             }
             else
             {
@@ -453,7 +455,7 @@ namespace Assistant
                 bool result = false;
                 try
                 {
-                    result = ClientCommunication.Attach(attPID);
+                    result = OSIClientCommunication.Attach(attPID);
                 }
                 catch (Exception e)
                 {
@@ -470,7 +472,7 @@ namespace Assistant
                     return;
                 }
 
-                ClientCommunication.SetConnectionInfo(IPAddress.Any, 0);
+                OSIClientCommunication.SetConnectionInfo(IPAddress.Any, 0);
             }
 
 
@@ -485,10 +487,102 @@ namespace Assistant
 
             m_Running = false;
 
-            ClientCommunication.Close();
+            ClientCommunication.Instance.Close();
             Counter.Save();
             Macros.MacroManager.Save();
             Config.Save();
+        }
+
+        private static string _rootPath = null;
+        public static string RootPath => _rootPath ?? ( _rootPath = Path.GetDirectoryName( Assembly.GetExecutingAssembly().Location ) );
+
+        public static unsafe void Install( PluginHeader* plugin )
+        {
+
+            ClientCommunication.Init( false );
+            AppDomain.CurrentDomain.AssemblyResolve += ( sender, e ) =>
+            {
+                string[] fields = e.Name.Split( ',' );
+                string name = fields[0];
+                string culture = fields[2];
+
+                if ( name.EndsWith( ".resources" ) && !culture.EndsWith( "neutral" ) )
+                {
+                    return null;
+                }
+                AssemblyName askedassembly = new AssemblyName( e.Name );
+
+                bool isdll = File.Exists( Path.Combine( RootPath, askedassembly.Name + ".dll" ) );
+
+                return Assembly.LoadFile( Path.Combine( RootPath, askedassembly.Name + ( isdll ? ".dll" : ".exe" ) ) );
+
+            };
+           
+            if ( !CUOClientCommunication.CUOInstance.InstallCUOHooks( plugin ) )
+            {
+                System.Diagnostics.Process.GetCurrentProcess().Kill();
+                return;
+            }
+            PacketsTable.AdjustPacketSizeByVersion( Engine.ClientVersion );
+
+
+            string clientPath = Marshal.GetDelegateForFunctionPointer( plugin->GetUOFilePath, typeof( OnGetUOFilePath ) ).DynamicInvoke().ToString();
+
+            Thread t = new Thread( () =>
+            {
+                m_Running = true;
+                Thread.CurrentThread.Name = "Razor Main Thread";
+
+#if !DEBUG
+			    AppDomain.CurrentDomain.UnhandledException +=
+                    new UnhandledExceptionEventHandler( CurrentDomain_UnhandledException );
+#endif
+
+                Ultima.Files.SetMulPath( clientPath );
+                Ultima.Multis.PostHSFormat = UsePostHSChanges;
+
+                if ( !Language.Load( "ENU" ) )
+                {
+                    MessageBox.Show(
+                        "Fatal Error: Unable to load required file Language/Razor_lang.enu\nRazor cannot continue.",
+                        "No Language Pack", MessageBoxButtons.OK, MessageBoxIcon.Stop );
+                    return;
+                }
+
+                string defLang = Config.GetAppSetting<string>( "DefaultLanguage" );
+                if ( defLang != null && !Language.Load( defLang ) )
+                    MessageBox.Show(
+                        String.Format(
+                            "WARNING: Razor was unable to load the file Language/Razor_lang.{0}\nENU will be used instead.",
+                            defLang ), "Language Load Error", MessageBoxButtons.OK, MessageBoxIcon.Warning );
+
+
+                Language.LoadCliLoc();
+
+                Initialize( typeof( Assistant.Engine ).Assembly ); //Assembly.GetExecutingAssembly()
+
+                Config.LoadCharList();
+                if ( !Config.LoadLastProfile() )
+                    MessageBox.Show(
+                        "The selected profile could not be loaded, using default instead.", "Profile Load Error",
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning );
+
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault( false );
+
+                m_MainWnd = new MainForm();
+                Application.Run( m_MainWnd );
+
+                m_Running = false;
+
+                ClientCommunication.Instance.Close();
+                Counter.Save();
+                Macros.MacroManager.Save();
+                Config.Save();
+            } );
+            t.SetApartmentState( ApartmentState.STA );
+            t.IsBackground = true;
+            t.Start();
         }
 
         /*public static string GetDirectory( string relPath )

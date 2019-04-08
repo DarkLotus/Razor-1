@@ -11,7 +11,8 @@ namespace Assistant
 
 		public static void Initialize()
 		{
-			Instance.Start();
+            if ( Environment.OSVersion.Platform != PlatformID.Unix && Environment.OSVersion.Platform != PlatformID.MacOSX )
+                Instance.Start();
 		}
 
 		private MemoryHelperThinggie() : base( TimeSpan.Zero, Frequency )

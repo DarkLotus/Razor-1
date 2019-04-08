@@ -52,7 +52,7 @@ namespace Assistant.MapUO
 			//
 
 			this.Map.FullUpdate();
-			ClientCommunication.SetMapWndHandle( this );
+			OSIClientCommunication.SetMapWndHandle( this );
 		}
 
 		public class MapMenuItem : MenuItem
@@ -128,14 +128,14 @@ namespace Assistant.MapUO
 					{
 						Engine.MainWindow.MapWindow.Hide();
 						Engine.MainWindow.BringToFront();
-						NativeMethods.BringToFront( ClientCommunication.FindUOWindow() );
+						NativeMethods.BringToFront( ClientCommunication.Instance.ClientWindow );
 					}
 					else
 					{
 						Engine.MainWindow.MapWindow.Show();
 						Engine.MainWindow.MapWindow.BringToFront();
 						Engine.MainWindow.MapWindow.TopMost = true;
-						ClientCommunication.SetMapWndHandle( Engine.MainWindow.MapWindow );
+						OSIClientCommunication.SetMapWndHandle( Engine.MainWindow.MapWindow );
 					}
 				}
 			}
@@ -311,7 +311,7 @@ namespace Assistant.MapUO
 					if ( send )
 					{
 						PacketHandlers.SpecialPartySent++;
-						ClientCommunication.SendToServer( new QueryPartyLocs() );
+						ClientCommunication.Instance.SendToServer( new QueryPartyLocs() );
 					}
 				}
 				else
@@ -324,12 +324,12 @@ namespace Assistant.MapUO
 		private void RequestPartyLocations()
 		{
 			if ( World.Player != null && PacketHandlers.Party.Count > 0 )
-				ClientCommunication.SendToServer(new QueryPartyLocs());
+                ClientCommunication.Instance.SendToServer(new QueryPartyLocs());
 		}
 
 		public void UpdateMap()
 		{
-			ClientCommunication.SetMapWndHandle( this );
+			OSIClientCommunication.SetMapWndHandle( this );
 			this.Map.UpdateMap();
 		}
 
@@ -340,7 +340,7 @@ namespace Assistant.MapUO
 				e.Cancel = true;
 				this.Hide();
 				Engine.MainWindow.BringToFront();
-				NativeMethods.BringToFront( ClientCommunication.FindUOWindow() );
+				NativeMethods.BringToFront( ClientCommunication.Instance.ClientWindow );
 			}
 		}
 

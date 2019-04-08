@@ -33,7 +33,7 @@ namespace Assistant
 			}
 
 			World.Player.VisRange = range;
-			ClientCommunication.SendToClient( new SetUpdateRange( range ) );
+			ClientCommunication.Instance.SendToClient( new SetUpdateRange( range ) );
 			World.Player.SendMessage( "Set VisRange to {0}", range );
 		}
 
@@ -54,7 +54,7 @@ namespace Assistant
 				loc.Y = Utility.ToInt32( args[1], 0 );
 				loc.Z = Utility.ToInt32( args[2], 0 );
 
-				ClientCommunication.SendToClient( new PathFindTo( loc ) );
+				ClientCommunication.Instance.SendToClient( new PathFindTo( loc ) );
 				World.Player.SendMessage( "Going... {0}", loc );
 			}
 			catch
@@ -76,7 +76,7 @@ namespace Assistant
 			World.Player.SendMessage( MsgLevel.Force, "Pwning... {0}", count );
 
 			for(int i=0;i<count;i++)
-				ClientCommunication.SendToServer( new ResyncReq() );
+				ClientCommunication.Instance.SendToServer( new ResyncReq() );
 
 			World.Player.SendMessage( MsgLevel.Force, "Done." );
 		}
@@ -147,7 +147,7 @@ namespace Assistant
 				p.Write( (short)0 );
 			}
 
-			ClientCommunication.SendToServer( p );
+			ClientCommunication.Instance.SendToServer( p );
 		}
 
 		private enum AutoTargType
