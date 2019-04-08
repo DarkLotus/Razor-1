@@ -70,6 +70,7 @@ namespace Assistant
         internal override Version GetUOVersion()
         {
             Version result;
+            //TODO WHY DOES THIS CRASH NOW??
             var ver = NativeMethods.GetUOVersion();
             string[] split = ver.Split( '.' );
 
@@ -399,7 +400,6 @@ namespace Assistant
                     }
 
                     byte* baseAddr = (byte*)NativeMethods.GetSharedAddress().ToPointer();
-
                     m_InRecv = (Buffer*)baseAddr;
                     m_OutRecv = (Buffer*)( baseAddr + sizeof( Buffer ) );
                     m_InSend = (Buffer*)( baseAddr + sizeof( Buffer ) * 2 );

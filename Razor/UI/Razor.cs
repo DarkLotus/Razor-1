@@ -3882,13 +3882,11 @@ namespace Assistant
                 System.Diagnostics.Process.GetCurrentProcess().Kill();
             }
         }
-
+ 
         public void MainForm_EndLoad()
         {
             Ultima.Multis.PostHSFormat = Engine.UsePostHSChanges;
-
-            PacketsTable.AdjustPacketSizeByVersion(Engine.ClientVersion);
-
+            PacketsTable.AdjustPacketSizeByVersion( Engine.ClientVersion );
             SplashScreen.Message = LocString.Welcome;
             InitConfig();
 
